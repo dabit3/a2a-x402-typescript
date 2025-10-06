@@ -1,0 +1,30 @@
+{
+  "name": "x402-a2a-typescript",
+  "version": "1.0.0",
+  "description": "Official x402 payment protocol extension for A2A (TypeScript)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublish": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "a2a",
+    "x402",
+    "payments",
+    "ethereum",
+    "coinbase",
+    "google"
+  ],
+  "author": "Coinbase Developer Platform & Google A2A",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "adk-typescript": "^1.0.3",
+    "ethers": "^6.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "typescript": "^5.9.3"
+  }
+}

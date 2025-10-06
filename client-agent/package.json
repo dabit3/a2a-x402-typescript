@@ -1,0 +1,32 @@
+{
+  "name": "x402-client-agent",
+  "version": "1.0.0",
+  "description": "Client orchestrator agent with x402 payment support",
+  "main": "agent.ts",
+  "scripts": {
+    "dev": "adk run .",
+    "start": "adk run .",
+    "web": "adk web .",
+    "build": "tsc --project tsconfig.json"
+  },
+  "keywords": [
+    "x402",
+    "agent",
+    "payment",
+    "blockchain",
+    "adk"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "adk-typescript": "^1.0.3",
+    "dotenv": "^17.2.3",
+    "ethers": "^6.13.0",
+    "x402-a2a-typescript": "file:../x402_a2a"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.0"
+  }
+}

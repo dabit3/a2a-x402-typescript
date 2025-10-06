@@ -1,0 +1,84 @@
+# Environment variables (contains API keys and private keys)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+
+# Dependencies
+node_modules/
+.npm
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.history/
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Private keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.csr
+
+# Credentials and secrets
+*credentials*.json
+*secret*.json
+*secrets*.yaml
+*secrets*.yml
+.secrets
+
+# Database files (if any)
+*.db
+*.sqlite
+*.sqlite3
+
+# ADK specific
+.adk/
+
+# Package manager lock files (optional - uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

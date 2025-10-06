@@ -1,0 +1,125 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * x402 Payment-Enabled Merchant Agent
+ *
+ * This agent demonstrates how to use the x402_a2a library to create a merchant agent
+ * that can sell products and accept payments using the x402 protocol.
+ */
+
+import { LlmAgent as Agent } from 'adk-typescript/agents';
+import { ToolContext } from 'adk-typescript/tools';
+import { createHash } from 'crypto';
+
+// Note: The x402_a2a library is available for payment integration
+// This demo shows a simplified version without full payment flow
+// For production use with actual payment processing, you would use:
+// import { x402PaymentRequiredException, x402ServerExecutor } from '../x402_a2a';
+
+// --- Merchant Agent Configuration ---
+
+const WALLET_ADDRESS = "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B";
+
+// --- Helper Functions ---
+
+/**
+ * Generates a deterministic price for a product based on its name
+ */
+function getProductPrice(productName: string): string {
+  const hash = createHash('sha256').update(productName.toLowerCase()).digest();
+  const hashNumber = BigInt('0x' + hash.toString('hex'));
+  const price = Number(hashNumber % 99900001n + 100000n);
+  return price.toString();
+}
+
+// --- Tool Functions ---
+
+/**
+ * Get product details and request payment
+ * Returns price information for the requested product
+ */
+async function getProductDetailsAndRequestPayment(
+  params: Record<string, any>,
+  context?: ToolContext
+): Promise<{
+  status: string;
+  productName?: string;
+  priceUSDC?: string;
+  priceFormatted?: string;
+  sku?: string;
+  message?: string;
+  error?: string;
+  paymentRequired?: boolean;
+}> {
+  const productName = params.productName || params.product_name || params;
+
+  console.log(`--- Tool: getProductDetailsAndRequestPayment called for: ${productName} ---`);
+
+  if (!productName || typeof productName !== 'string' || productName.trim() === '') {
+    return { status: "error", error: "Product name cannot be empty." };
+  }
+
+  const priceAtomic = getProductPrice(productName);
+  const priceUSDC = (parseInt(priceAtomic) / 1_000_000).toFixed(6);
+  const priceFormatted = `$${priceUSDC} USDC`;
+
+  // Return price information
+  return {
+    status: "success",
+    productName: productName,
+    priceUSDC: priceUSDC,
+    priceFormatted: priceFormatted,
+    sku: `${productName}_sku`,
+    message: `The price for ${productName} is ${priceFormatted}. To complete the purchase, payment of ${priceFormatted} on Base Sepolia network is required to wallet address ${WALLET_ADDRESS}.`,
+    paymentRequired: true
+  };
+}
+
+/**
+ * Check the status of the current order
+ * This tool would be called after payment is verified
+ */
+async function checkOrderStatus(
+  params: Record<string, any>,
+  context?: ToolContext
+): Promise<{ status: string; message: string }> {
+  console.log('--- Tool: checkOrderStatus called ---');
+
+  return {
+    status: "success",
+    message: "Your order has been confirmed and is being prepared for shipment!"
+  };
+}
+
+// --- Agent Definition ---
+
+export const merchantAgent = new Agent({
+  name: "x402_merchant_agent",
+  model: "gemini-2.0-flash",
+  description: "An agent that can sell any item by providing a price and payment information.",
+  instruction: `You are a helpful and friendly merchant agent.
+- When a user asks about the price of an item or wants to buy something, use the 'getProductDetailsAndRequestPayment' tool.
+- The tool will return the price in USDC and payment details.
+- Present the price clearly to the user and explain that payment would be required on the Base Sepolia network.
+- Be concise, friendly, and professional in your responses.
+- If asked about payment, explain that this is a demo showing how the x402 payment protocol works.`,
+  tools: [
+    getProductDetailsAndRequestPayment,
+    checkOrderStatus,
+  ],
+});
+
+// Export as root agent for ADK
+export const rootAgent = merchantAgent;

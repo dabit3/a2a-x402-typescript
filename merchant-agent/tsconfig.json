@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "module": "node16",
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node16",
+    "baseUrl": ".",
+    "paths": {
+      "x402-a2a-typescript": ["../x402_a2a"],
+      "x402-a2a-typescript/*": ["../x402_a2a/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "agent.ts",
+    "server.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.backup.ts"
+  ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}
