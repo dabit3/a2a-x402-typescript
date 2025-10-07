@@ -556,8 +556,8 @@ When making changes:
 - **Deployment**: [merchant-agent/DEPLOYMENT.md](merchant-agent/DEPLOYMENT.md)
 
 ### Related Implementations
-- **Python Implementation**: `../../python/x402_a2a/` - Full protocol spec
-- **Python Demo**: `../../python/adk-demo/` - Reference implementation
+- **Python Implementation**: [google-agentic-commerce/a2a-x402/tree/main/python/x402_a2a](https://github.com/google-agentic-commerce/a2a-x402/tree/main/python/x402_a2a) - Full protocol spec
+- **Python Demo**: [google-agentic-commerce/a2a-x402/tree/main/python/examples/adk-demo](https://github.com/google-agentic-commerce/a2a-x402/tree/main/python/examples/adk-demo) - Reference implementation
 
 ## 📄 License
 
