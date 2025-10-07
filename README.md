@@ -1,6 +1,6 @@
 # TypeScript x402 A2A implementation
 
-This directory contains the complete TypeScript implementation of the x402 payment protocol extension for A2A (Agent-to-Agent), along with fully functional client and merchant agents demonstrating end-to-end crypto payment flows, implemented with [ADK TypeScript](https://github.com/njraladdin/adk-typescript).
+This is a complete TypeScript implementation of the x402 payment protocol extension for A2A, along with fully functional client and merchant agents demonstrating end-to-end crypto payment flows, which are implemented with [ADK TypeScript](https://github.com/njraladdin/adk-typescript).
 
 ## 📁 Directory structure
 
