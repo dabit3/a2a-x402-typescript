@@ -241,7 +241,7 @@ const paymentPayload = await processPayment(
 | Exception-based Flow | ✅ | ✅ |
 | Executors | ✅ | ✅ |
 
-## 📦 Key Differences from Python
+## Key Differences from Python
 
 1. **Type Definitions**: TypeScript uses interfaces instead of Pydantic models
 2. **Wallet Integration**: Uses ethers.js instead of eth-account
