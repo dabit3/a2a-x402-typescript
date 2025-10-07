@@ -19,7 +19,7 @@ typescript/
     └── src/               # Payment flow testing
 ```
 
-## 🚀 Quick Start
+## ⚡️ Quick Start
 
 ### Complete Setup (All Components)
 
@@ -65,7 +65,7 @@ You: yes
 Agent: ✅ Payment completed successfully! Transaction: 0x...
 ```
 
-## 📚 Library Overview: x402_a2a
+## Library Overview: x402_a2a
 
 The `x402_a2a` library is a complete TypeScript port of the Python `x402_a2a` library, providing:
 
@@ -100,7 +100,7 @@ The library follows a "functional core, imperative shell" architecture:
 - `server.ts` - Server-side executor (merchant)
 - `client.ts` - Client-side executor (wallet)
 
-## 🎯 Component Overview
+## Component Overview
 
 ### Client Agent (Orchestrator)
 
@@ -144,7 +144,7 @@ The **merchant agent** is a service provider that:
 - API access control
 - Premium feature gating
 
-## 🎯 Usage Examples
+## Usage Examples
 
 ### Running the Client Agent
 
@@ -230,13 +230,12 @@ const paymentPayload = await processPayment(
 );
 ```
 
-## 🔄 Comparison with Python Implementation
+## Comparison with Python Implementation
 
 | Feature | Python | TypeScript |
 |---------|--------|------------|
 | Language | Python 3.11+ | TypeScript 5.x |
 | Type System | Pydantic | TypeScript interfaces |
-| Async/Await | ✅ | ✅ |
 | Wallet Library | eth-account | ethers.js |
 | ADK Integration | adk-sdk | adk-typescript |
 | Exception-based Flow | ✅ | ✅ |
@@ -247,10 +246,8 @@ const paymentPayload = await processPayment(
 1. **Type Definitions**: TypeScript uses interfaces instead of Pydantic models
 2. **Wallet Integration**: Uses ethers.js instead of eth-account
 3. **Crypto Operations**: Uses native Web Crypto API where available
-4. **Module System**: CommonJS/ES modules instead of Python imports
-5. **Package Manager**: npm/yarn instead of uv/pip
 
-## 🛠️ Development
+## Development
 
 ### Building the Library
 
@@ -279,7 +276,7 @@ For detailed protocol documentation, see:
 - [Python x402_a2a README](../../python/x402_a2a/README.md) - Complete protocol specification
 - [Merchant Agent README](merchant-agent/README.md) - Example agent usage
 
-## 🔑 Key Components
+## Key Components
 
 ### x402PaymentRequiredException
 
@@ -333,7 +330,7 @@ class MyMerchantExecutor extends x402ServerExecutor {
 }
 ```
 
-## 🧪 Testing & Development
+## Testing & Development
 
 ### End-to-End Payment Flow Test
 
@@ -399,7 +396,7 @@ npm run build      # Compile library
 npm run clean      # Remove build artifacts
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -455,7 +452,7 @@ Get testnet funds:
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
 
-## 🛡️ Security Considerations
+## Security Considerations
 
 ### Private Key Management
 
@@ -484,7 +481,7 @@ cast send $USDC_ADDRESS "approve(address,uint256)" \
   --private-key $WALLET_PRIVATE_KEY
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 

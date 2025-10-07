@@ -26,9 +26,9 @@ npm run dev
 
 Server runs at `http://localhost:10000` using ADK's built-in API server.
 
-## Production Deployment
+## Configuration
 
-### Configuration
+### Environment Variables
 
 Create a `.env` file:
 
@@ -41,48 +41,210 @@ PORT=10000
 MERCHANT_WALLET_ADDRESS=0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B
 PAYMENT_NETWORK=base-sepolia
 USDC_CONTRACT=0x036CbD53842c5426634e7929541eC2318f3dCF7e
+
+# Facilitator configuration (optional)
+USE_MOCK_FACILITATOR=false
+FACILITATOR_URL=https://x402.org/facilitator
+FACILITATOR_API_KEY=your_facilitator_api_key
 ```
 
-### Deployment Options
+### Network Configuration
 
-#### Using ADK (Recommended)
+**Base Sepolia (Testnet):**
+```bash
+PAYMENT_NETWORK=base-sepolia
+USDC_CONTRACT=0x036CbD53842c5426634e7929541eC2318f3dCF7e
+```
 
+**Base Mainnet:**
+```bash
+PAYMENT_NETWORK=base
+USDC_CONTRACT=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+```
+
+**Ethereum Mainnet:**
+```bash
+PAYMENT_NETWORK=ethereum
+USDC_CONTRACT=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+```
+
+**Polygon:**
+```bash
+PAYMENT_NETWORK=polygon
+USDC_CONTRACT=0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174
+```
+
+## Production Deployment
+
+### Deployment Approaches
+
+#### Option A: ADK API Server (Recommended for Getting Started)
+
+The simplest way to run the merchant agent is using ADK's built-in API server:
+
+**Development:**
+```bash
+npm install
+npm run dev
+```
+
+**Production:**
 ```bash
 npm run build
 adk api_server --port 10000 --agent-dir ./dist
 ```
 
+**Advantages:**
+- ✅ Zero configuration required
+- ✅ Built-in API server
+- ✅ Auto-reload on file changes
+- ✅ Works immediately
+
+**Limitations:**
+- ⚠️ Payment executor wrapper needs manual integration
+- ⚠️ Requires ADK CLI tooling
+
+#### Option B: Custom HTTP Server with Executor (Advanced)
+
+For full x402 payment processing with automatic verification and settlement, use the custom server (`server.ts`):
+
+**Status:** 🚧 In Development
+
+**When complete:**
+```bash
+npm run start        # Development
+npm run start:prod   # Production
+```
+
+The custom server is designed to:
+- ✅ Wrap the agent with `MerchantServerExecutor`
+- ✅ Use the default facilitator (`https://x402.org/facilitator`)
+- ✅ Handle payment verification and settlement automatically
+- ✅ Provide HTTP API for client integration
+
+### Deployment Options
+
 #### Docker
+
+Create a `Dockerfile`:
 
 ```dockerfile
 FROM node:20-alpine
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm ci --production
+
 COPY dist ./dist
 COPY .env .env
+
 EXPOSE 10000
+
 CMD ["node", "dist/server.js"]
 ```
 
+Build and run:
 ```bash
 docker build -t merchant-agent .
-docker run -p 10000:10000 merchant-agent
+docker run -p 10000:10000 --env-file .env merchant-agent
 ```
 
 #### Cloud Platforms
 
 **Google Cloud Run:**
 ```bash
+npm run build
 gcloud run deploy merchant-agent \
   --source . \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
   --set-env-vars GOOGLE_API_KEY=$GOOGLE_API_KEY
 ```
 
-**PM2:**
+**AWS ECS/Fargate:**
+- Build Docker image
+- Push to ECR
+- Create ECS task with environment variables
+- Deploy to Fargate cluster
+
+**Heroku:**
 ```bash
-pm2 start dist/server.js --name merchant-agent
+heroku create merchant-agent
+heroku config:set GOOGLE_API_KEY=$GOOGLE_API_KEY
+git push heroku main
 ```
+
+**PM2 (Process Manager):**
+```bash
+# Install PM2
+npm install -g pm2
+
+# Start server
+pm2 start dist/server.js --name merchant-agent
+
+# View logs
+pm2 logs merchant-agent
+
+# Restart
+pm2 restart merchant-agent
+```
+
+### Facilitator Service
+
+The facilitator service handles blockchain interactions (verification and settlement).
+
+#### Using Default Facilitator
+
+The merchant agent uses `https://x402.org/facilitator` by default. No additional configuration needed.
+
+#### Using Mock Facilitator (Testing)
+
+For local testing without real blockchain transactions:
+
+```bash
+USE_MOCK_FACILITATOR=true npm run dev
+```
+
+Or modify `server.ts`:
+
+```typescript
+import { MockFacilitatorClient } from './src/facilitator/MockFacilitatorClient';
+
+const mockFacilitator = new MockFacilitatorClient();
+const paymentExecutor = new MerchantServerExecutor(
+  agentAdapter as any,
+  undefined,
+  mockFacilitator
+);
+```
+
+#### Deploying Your Own Facilitator
+
+To deploy a custom facilitator, it must implement:
+
+```typescript
+interface FacilitatorClient {
+  verify(
+    payload: PaymentPayload,
+    requirements: PaymentRequirements
+  ): Promise<VerifyResponse>;
+
+  settle(
+    payload: PaymentPayload,
+    requirements: PaymentRequirements
+  ): Promise<SettleResponse>;
+}
+```
+
+**Verification API** (`POST /verify`):
+- Verifies EIP-712 signature and authorization details
+- Returns: `{ isValid: boolean, payer?: string, invalidReason?: string }`
+
+**Settlement API** (`POST /settle`):
+- Submits transaction to blockchain
+- Returns: `{ success: boolean, transaction?: string, network: string, payer?: string, errorReason?: string }`
 
 ## API Usage
 
@@ -174,19 +336,83 @@ curl -X POST http://localhost:10000 \
 - 🔐 On-chain USDC settlement (Base Sepolia)
 - 🚀 Default facilitator at `https://x402.org/facilitator`
 
-## Network Configuration
+## Payment Flow
 
-**Base Mainnet:**
+The complete payment flow involves these steps:
+
+### Step 1: Product Request
+
+Client sends product request:
+
 ```bash
-PAYMENT_NETWORK=base
-USDC_CONTRACT=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+curl -X POST http://localhost:10000 \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I want to buy a banana"}'
 ```
 
-**Ethereum Mainnet:**
-```bash
-PAYMENT_NETWORK=ethereum
-USDC_CONTRACT=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+### Step 2: Payment Required Response
+
+Server responds with payment requirements in metadata:
+
+```json
+{
+  "metadata": {
+    "x402.payment.status": "payment-required",
+    "x402.payment.required": {
+      "x402Version": 1,
+      "accepts": [{
+        "scheme": "exact",
+        "network": "base-sepolia",
+        "asset": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "payTo": "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B",
+        "maxAmountRequired": "912883",
+        "maxTimeoutSeconds": 1200,
+        "description": "Payment for: banana",
+        "resource": "https://example.com/product/banana",
+        "mimeType": "application/json"
+      }]
+    }
+  }
+}
 ```
+
+### Step 3: Client Signs Payment
+
+Client uses wallet to sign payment (see `client-agent` implementation).
+
+### Step 4: Payment Submission
+
+Client submits signed payment with same `taskId`:
+
+```bash
+curl -X POST http://localhost:10000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "I want to buy a banana",
+    "taskId": "same-task-id-from-step-1",
+    "message": {
+      "metadata": {
+        "x402.payment.status": "payment-submitted",
+        "x402.payment.payload": {
+          "x402Version": 1,
+          "scheme": "exact",
+          "network": "base-sepolia",
+          "payload": {
+            "authorization": {...},
+            "signature": "0x..."
+          }
+        }
+      }
+    }
+  }'
+```
+
+### Step 5: Verification & Settlement
+
+Server automatically:
+1. Calls `verifyPayment()` → Facilitator verifies signature
+2. Calls `settlePayment()` → Facilitator settles on-chain
+3. Returns order confirmation
 
 ## Monitoring
 
@@ -202,38 +428,115 @@ if (req.url === '/health') {
 }
 ```
 
-### Key Metrics
+### Key Metrics to Monitor
 
-- Payment success rate
-- Verification/settlement failures
-- Response time
-- Transaction fees
+- **Payment success rate**: % of payments that verify and settle successfully
+- **Payment failures**: Track reasons for verification/settlement failures
+- **Response time**: Time from payment submission to settlement
+- **Transaction fees**: Monitor blockchain gas costs
+- **Revenue**: Track total payments received
+
+### Logging
+
+The agent logs important events:
+- `🛒 Product Request` - New product request
+- `💳 Payment required` - Payment exception thrown
+- `✅ Payment Verified Successfully` - Verification passed
+- `✅ Payment Settled Successfully` - Settlement completed
+- `⛔ Payment Verification Failed` - Verification error
+- `⛔ Payment Settlement Failed` - Settlement error
+
+For production, integrate with:
+- **Winston**: Structured logging
+- **Datadog**: Application monitoring
+- **Sentry**: Error tracking
 
 ## Security
 
-- Store API keys in secret management
-- Use HTTPS in production
-- Implement rate limiting
-- Keep merchant wallet secure
-- Never commit `.env` files
+### Best Practices
+
+- **API Keys**: Store `GOOGLE_API_KEY` and `FACILITATOR_API_KEY` securely (use secret management)
+- **Network Security**: Use HTTPS for facilitator communication
+- **Wallet Security**: Merchant wallet address should be stored in secure cold storage
+- **Rate Limiting**: Implement rate limiting on your agent endpoints to prevent abuse
+- **Environment Variables**: Never commit `.env` file to version control
+- **API Authentication**: Add API key validation in production
+- **HTTPS**: Always use HTTPS in production (handled by cloud platforms)
 
 ## Troubleshooting
 
-**Server won't start:**
+### Common Errors and Solutions
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `HTTP 401: Unauthorized` | Invalid facilitator API key | Check `FACILITATOR_API_KEY` |
+| `HTTP 503: Service Unavailable` | Facilitator down | Implement retry logic |
+| `InvalidReason: insufficient_funds` | Payer has insufficient balance | Return clear error to user |
+| `InvalidReason: invalid_signature` | Signature verification failed | Check EIP-712 domain matches |
+| `Network error` | Network connectivity issue | Check facilitator URL and firewall |
+
+### Server Won't Start
+
 ```bash
+# Check port availability
 lsof -i :10000
+
+# Kill existing process
 kill -9 $(lsof -t -i:10000)
 ```
 
-**Payment verification fails:**
-- Check facilitator is reachable: `curl https://x402.org/facilitator/health`
-- Verify network configuration matches
-- Confirm USDC contract address is correct
+### Payment Verification Fails
 
-**Agent errors:**
-- Verify `GOOGLE_API_KEY` is set
+**Check:**
+1. Facilitator is reachable: `curl https://x402.org/facilitator/health`
+2. Network configuration matches (base-sepolia vs base)
+3. USDC contract address is correct for the network
+4. Facilitator API key is valid
+
+### Settlement Fails but Verification Succeeds
+
+**Check:**
+1. Facilitator has sufficient funds/gas
+2. Blockchain network is operational
+3. Transaction timeout settings
+4. Gas price configuration
+
+### Agent Errors
+
+- Verify `GOOGLE_API_KEY` is set correctly
 - Check Gemini API quota/limits
-- Review agent logs
+- Review agent logs for detailed errors
+
+## Testing in Production
+
+### Smoke Test
+
+Test with a small transaction on testnet:
+
+```bash
+# Use Base Sepolia testnet
+export PAYMENT_NETWORK=base-sepolia
+export USE_MOCK_FACILITATOR=false
+
+npm run test:payment
+```
+
+Expected output:
+```
+✅ ===== Payment Flow Test PASSED! =====
+   🎉 Order has been confirmed!
+   📦 Product will be shipped soon!
+```
+
+### Load Testing
+
+```bash
+# Install Apache Bench
+sudo apt-get install apache2-utils
+
+# Test 100 requests, 10 concurrent
+ab -n 100 -c 10 -p request.json -T application/json http://localhost:10000/
+```
 
 ## License
 
