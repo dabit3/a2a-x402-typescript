@@ -1,8 +1,8 @@
-# TypeScript x402 A2A Implementation
+# TypeScript x402 A2A implementation
 
-This directory contains the complete TypeScript implementation of the x402 payment protocol extension for A2A (Agent-to-Agent), along with fully functional client and merchant agents demonstrating end-to-end crypto payment flows.
+This directory contains the complete TypeScript implementation of the x402 payment protocol extension for A2A (Agent-to-Agent), along with fully functional client and merchant agents demonstrating end-to-end crypto payment flows, implemented with [ADK TypeScript](https://github.com/njraladdin/adk-typescript).
 
-## 📁 Directory Structure
+## 📁 Directory structure
 
 ```
 typescript/
@@ -19,9 +19,9 @@ typescript/
     └── src/               # Payment flow testing
 ```
 
-## ⚡️ Quick Start
+## ⚡️ Quickstart
 
-### Complete Setup (All Components)
+### Complete setup (all components)
 
 This will set up the full payment demo with both client and merchant agents:
 
@@ -53,7 +53,7 @@ cd ../client-agent
 npm run dev
 ```
 
-### Quick Test
+### Quick test
 
 Once both agents are running:
 
@@ -65,11 +65,11 @@ You: yes
 Agent: ✅ Payment completed successfully! Transaction: 0x...
 ```
 
-## Library Overview: x402_a2a
+## Library overview: x402_a2a
 
 The `x402_a2a` library is a complete TypeScript port of the Python `x402_a2a` library, providing:
 
-### Core Features
+### Core features
 
 - ✅ **Exception-based payment requirements** - Throw exceptions to request payments
 - ✅ **Dynamic pricing** - Set prices based on request parameters
@@ -81,13 +81,13 @@ The `x402_a2a` library is a complete TypeScript port of the Python `x402_a2a` li
 
 The library follows a "functional core, imperative shell" architecture:
 
-#### **types/** - Protocol Data Structures
+#### **types/** - Protocol data structures
 - `config.ts` - Configuration types
 - `state.ts` - Payment states and protocol types
 - `errors.ts` - Error types and x402PaymentRequiredException
 - `index.ts` - Type exports
 
-#### **core/** - Protocol Implementation
+#### **core/** - Protocol implementation
 - `merchant.ts` - Payment requirements creation
 - `wallet.ts` - Payment signing and processing
 - `protocol.ts` - Verification and settlement
@@ -95,14 +95,14 @@ The library follows a "functional core, imperative shell" architecture:
 - `helpers.ts` - Convenience helper functions
 - `agent.ts` - Agent card utilities
 
-#### **executors/** - Optional Middleware
+#### **executors/** - Optional middleware
 - `base.ts` - Base executor class
 - `server.ts` - Server-side executor (merchant)
 - `client.ts` - Client-side executor (wallet)
 
-## Component Overview
+## Component overview
 
-### Client Agent (Orchestrator)
+### Client agent (orchestrator)
 
 The **client agent** is an orchestrator that:
 - Has a wallet with private keys
@@ -111,19 +111,19 @@ The **client agent** is an orchestrator that:
 - Uses LLM-based parsing for natural language commands
 - Manages token approvals and payment signing
 
-**Key Features:**
+**Key features:**
 - 🔐 Secure wallet integration with ERC-20 token support
 - 💰 Automatic USDC approval and payment handling
 - 🤖 Natural language understanding for purchase requests
 - ⛓️ Direct blockchain interaction on Base Sepolia
 - ✅ User confirmation before payments
 
-**Use Cases:**
+**Use cases:**
 - Personal shopping assistant
 - Automated procurement agent
 - Payment-enabled chatbot
 
-### Merchant Agent (Service Provider)
+### Merchant agent (service provider)
 
 The **merchant agent** is a service provider that:
 - Receives product/service requests
@@ -132,21 +132,21 @@ The **merchant agent** is a service provider that:
 - Settles payments on-chain
 - Fulfills orders after payment confirmation
 
-**Key Features:**
+**Key features:**
 - 💵 Dynamic hash-based pricing (deterministic pricing based on product name)
 - 🔍 Payment verification via facilitator
 - 📦 Order fulfillment workflow
 - 🛡️ Secure payment settlement
 - 🎯 ADK-powered agent framework
 
-**Use Cases:**
+**Use cases:**
 - E-commerce agent
 - API access control
 - Premium feature gating
 
-## Usage Examples
+## Usage examples
 
-### Running the Client Agent
+### Running the client agent
 
 ```bash
 cd client-agent
@@ -173,7 +173,7 @@ Agent: [Approving token spending...]
        Transaction: 0x...
 ```
 
-### Running the Merchant Agent
+### Running the merchant agent
 
 ```bash
 cd merchant-agent
@@ -187,9 +187,9 @@ The merchant agent runs as an API server at `http://localhost:10000` and automat
 4. Settles transactions on-chain
 5. Confirms order fulfillment
 
-### Library Usage (Advanced)
+### Library usage (advanced)
 
-#### Server-Side (Merchant)
+#### Server-side (merchant)
 
 ```typescript
 import { x402PaymentRequiredException } from 'x402-a2a-typescript';
@@ -211,7 +211,7 @@ throw new x402PaymentRequiredException(
 );
 ```
 
-#### Client-Side (Wallet)
+#### Client-side (wallet)
 
 ```typescript
 import { processPayment, x402Utils } from 'x402-a2a-typescript';
@@ -230,7 +230,7 @@ const paymentPayload = await processPayment(
 );
 ```
 
-## Comparison with Python Implementation
+## Comparison with Python implementation
 
 | Feature | Python | TypeScript |
 |---------|--------|------------|
@@ -241,29 +241,29 @@ const paymentPayload = await processPayment(
 | Exception-based Flow | ✅ | ✅ |
 | Executors | ✅ | ✅ |
 
-## Key Differences from Python
+## Key differences from python
 
-1. **Type Definitions**: TypeScript uses interfaces instead of Pydantic models
-2. **Wallet Integration**: Uses ethers.js instead of eth-account
-3. **Crypto Operations**: Uses native Web Crypto API where available
+1. **Type definitions**: TypeScript uses interfaces instead of Pydantic models
+2. **Wallet integration**: Uses ethers.js instead of eth-account
+3. **Crypto operations**: Uses native Web Crypto API where available
 
 ## Development
 
-### Building the Library
+### Building the library
 
 ```bash
 cd x402_a2a
 npm run build
 ```
 
-### Cleaning Build Artifacts
+### Cleaning build artifacts
 
 ```bash
 cd x402_a2a
 npm run clean
 ```
 
-### Installing in Another Project
+### Installing in another project
 
 ```bash
 # In your project
@@ -276,7 +276,7 @@ For detailed protocol documentation, see:
 - [Python x402_a2a README](../../python/x402_a2a/README.md) - Complete protocol specification
 - [Merchant Agent README](merchant-agent/README.md) - Example agent usage
 
-## Key Components
+## Key components
 
 ### x402PaymentRequiredException
 
@@ -330,7 +330,7 @@ class MyMerchantExecutor extends x402ServerExecutor {
 }
 ```
 
-## Testing & Development
+## Testing & development
 
 ### End-to-End Payment Flow Test
 
@@ -357,7 +357,7 @@ Test the complete payment flow with both agents:
    Agent: ✅ Payment completed successfully!
    ```
 
-### Merchant Payment Flow Test (Standalone)
+### Merchant payment flow test (standalone)
 
 Test just the merchant agent's payment verification:
 
@@ -373,16 +373,16 @@ This simulates:
 - Payment verification
 - Transaction settlement
 
-### Available Commands
+### Available commands
 
-#### Client Agent
+#### Client agent
 ```bash
 npm run dev        # Start in CLI mode
 npm run web        # Start with web UI
 npm run build      # Compile TypeScript
 ```
 
-#### Merchant Agent
+#### Merchant agent
 ```bash
 npm run dev              # Start as API server (port 10000)
 npm run web              # Start with web UI
@@ -390,7 +390,7 @@ npm run test:payment     # Test payment flow standalone
 npm run build            # Compile TypeScript
 ```
 
-#### x402_a2a Library
+#### x402_a2a library
 ```bash
 npm run build      # Compile library
 npm run clean      # Remove build artifacts
@@ -398,11 +398,11 @@ npm run clean      # Remove build artifacts
 
 ## Configuration
 
-### Environment Variables
+### Environment variables
 
 Both agents require configuration via `.env` files.
 
-#### Client Agent (`.env`)
+#### Client agent (`.env`)
 ```bash
 # Required
 GOOGLE_API_KEY=your_gemini_api_key_here
@@ -413,7 +413,7 @@ BASE_SEPOLIA_RPC_URL=https://base-sepolia.g.alchemy.com/v2/YOUR_KEY
 MERCHANT_AGENT_URL=http://localhost:10000/agents/merchant
 ```
 
-#### Merchant Agent (`.env`)
+#### Merchant agent (`.env`)
 ```bash
 # Required
 GOOGLE_API_KEY=your_gemini_api_key_here
@@ -423,38 +423,38 @@ WALLET_PRIVATE_KEY=0xYourMerchantPrivateKey
 PORT=10000
 ```
 
-### Wallet Setup
+### Wallet setup
 
 Both agents need wallets with funds:
 
-**Client Wallet:**
+**Client wallet:**
 - ETH for gas fees
 - USDC for payments
 
-**Merchant Wallet:**
+**Merchant wallet:**
 - ETH for settlement gas fees
 
 Get testnet funds:
 - **ETH**: https://www.alchemy.com/faucets/base-sepolia or https://faucet.quicknode.com/base/sepolia
 - **USDC**: https://faucet.circle.com/ (select "Base Sepolia" network)
 
-### Network Details
+### Network details
 
-**Base Sepolia (Testnet)**
+**Base Sepolia (testnet)**
 - Chain ID: 84532
 - RPC: `https://base-sepolia.g.alchemy.com/v2/YOUR_KEY` or `https://sepolia.base.org`
 - USDC: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
 - Explorer: https://sepolia.basescan.org/
 
-**Base Mainnet (Production)**
+**Base Mainnet (production)**
 - Chain ID: 8453
 - RPC: `https://base-mainnet.g.alchemy.com/v2/YOUR_KEY` or `https://mainnet.base.org`
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
 
-## Security Considerations
+## Security considerations
 
-### Private Key Management
+### Private key management
 
 ⚠️ **CRITICAL**: Private keys have full control over wallet funds!
 
@@ -464,7 +464,7 @@ Get testnet funds:
 - Rotate keys regularly
 - Use minimal balances for testing
 
-### Approval Limits
+### Approval limits
 
 The client wallet approves with a 10% buffer:
 ```typescript
@@ -483,7 +483,7 @@ cast send $USDC_ADDRESS "approve(address,uint256)" \
 
 ## Troubleshooting
 
-### Common Issues
+### Common issues
 
 **Issue: "Insufficient balance"**
 ```bash
@@ -533,7 +533,7 @@ When making changes:
 4. Ensure TypeScript compilation succeeds without errors
 5. Update documentation if adding features
 
-### Adding New Features
+### Adding new features
 
 **To add a new product:**
 - Client: Update the LLM parsing examples in `parseUserMessage()`
@@ -547,7 +547,7 @@ When making changes:
 - Extend the payment requirements in both agents
 - Update the wallet to support new tokens/networks
 
-## 📚 Further Reading
+## 📚 Further reading
 
 ### Documentation
 - **Client Agent**: [client-agent/README.md](client-agent/README.md)
@@ -555,7 +555,7 @@ When making changes:
 - **x402 Library**: Core protocol implementation
 - **Deployment**: [merchant-agent/DEPLOYMENT.md](merchant-agent/DEPLOYMENT.md)
 
-### Related Implementations
+### Related implementations
 - **Python Implementation**: [google-agentic-commerce/a2a-x402/tree/main/python/x402_a2a](https://github.com/google-agentic-commerce/a2a-x402/tree/main/python/x402_a2a) - Full protocol spec
 - **Python Demo**: [google-agentic-commerce/a2a-x402/tree/main/python/examples/adk-demo](https://github.com/google-agentic-commerce/a2a-x402/tree/main/python/examples/adk-demo) - Reference implementation
 
@@ -563,7 +563,7 @@ When making changes:
 
 Apache-2.0 - See LICENSE file for details
 
-## 🎯 What's Next?
+## 🎯 What's next?
 
 1. **Try the demo**: Follow the Quick Start guide
 2. **Customize pricing**: Modify the merchant agent's pricing logic
