@@ -133,7 +133,7 @@ The **merchant agent** is a service provider that:
 - Fulfills orders after payment confirmation
 
 **Key Features:**
-- 💵 Fixed 1 USDC pricing for all products
+- 💵 Fully configurable product pricing (in this example, fixed at 1 USDC pricing for all products)
 - 🔍 Payment verification via facilitator
 - 📦 Order fulfillment workflow
 - 🛡️ Secure payment settlement
