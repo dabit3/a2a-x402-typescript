@@ -133,7 +133,7 @@ The **merchant agent** is a service provider that:
 - Fulfills orders after payment confirmation
 
 **Key Features:**
-- 💵 Fully configurable product pricing (in this example, fixed at 1 USDC pricing for all products)
+- 💵 Dynamic hash-based pricing (deterministic pricing based on product name)
 - 🔍 Payment verification via facilitator
 - 📦 Order fulfillment workflow
 - 🛡️ Secure payment settlement
@@ -537,11 +537,11 @@ When making changes:
 
 **To add a new product:**
 - Client: Update the LLM parsing examples in `parseUserMessage()`
-- Merchant: Pricing is automatic (fixed at 1 USDC)
+- Merchant: Products are recognized automatically; pricing is hash-based by default
 
 **To change pricing:**
-- Edit `agent.ts:135` in client-agent
-- Edit `agent.ts` in merchant-agent (if implementing dynamic pricing)
+- Edit `getProductPrice()` function in `merchant-agent/agent.ts` (currently uses SHA-256 hash of product name)
+- Options: Fixed pricing, database lookups, API calls, tiered pricing, etc.
 
 **To add payment methods:**
 - Extend the payment requirements in both agents
