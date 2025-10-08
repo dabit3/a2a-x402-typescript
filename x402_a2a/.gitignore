@@ -4,6 +4,9 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
+# tarball
+*.tgz
+
 # Build output
 dist/
 
