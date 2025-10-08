@@ -1,198 +1,22 @@
-# TypeScript x402 A2A implementation
+# a2a-x402
 
-This is a complete TypeScript implementation of the x402 payment protocol extension for A2A, along with fully functional client and merchant agents demonstrating end-to-end crypto payment flows, which are implemented with [ADK TypeScript](https://github.com/njraladdin/adk-typescript).
+A complete TypeScript implementation of the x402 payment protocol extension for A2A (Agent-to-Agent) communication. Enable your AI agents to request, verify, and settle crypto payments seamlessly.
 
-## 📁 Directory structure
+[![npm version](https://badge.fury.io/js/a2a-x402.svg)](https://www.npmjs.com/package/a2a-x402)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-```
-typescript/
-├── x402_a2a/              # The x402 payment protocol library
-│   ├── types/             # Type definitions
-│   ├── core/              # Core protocol implementation
-│   ├── executors/         # Optional middleware
-│   └── index.ts           # Main exports
-├── client-agent/          # Orchestrator agent with wallet
-│   ├── agent.ts           # Client agent implementation
-│   └── src/wallet/        # Wallet & payment handling
-└── merchant-agent/        # Payment-enabled merchant agent
-    ├── agent.ts           # Merchant agent implementation
-    └── src/               # Payment flow testing
-```
-
-## ⚡️ Quickstart
-
-### Complete setup (all components)
-
-This will set up the full payment demo with both client and merchant agents:
+## ⚡️ Quick Start
 
 ```bash
-# 1. Build the x402_a2a library
-cd x402_a2a
-npm install
-npm run build
-cd ..
-
-# 2. Set up the merchant agent
-cd merchant-agent
-npm install
-cp .env.example .env
-# Edit .env and add your GOOGLE_API_KEY and WALLET_PRIVATE_KEY
-
-# 3. Set up the client agent
-cd ../client-agent
-npm install
-cp .env.example .env
-# Edit .env and add your GOOGLE_API_KEY, WALLET_PRIVATE_KEY, and BASE_SEPOLIA_RPC_URL
-
-# 4. Start the merchant agent (in one terminal)
-cd ../merchant-agent
-npm run dev
-
-# 5. Start the client agent (in another terminal)
-cd ../client-agent
-npm run dev
+npm install a2a-x402
 ```
 
-### Quick test
+### Basic Usage
 
-Once both agents are running:
-
-**Client terminal:**
-```
-You: I want to buy a banana
-Agent: The merchant is requesting 1.000000 USDC for a banana. Would you like to proceed?
-You: yes
-Agent: ✅ Payment completed successfully! Transaction: 0x...
-```
-
-## Library overview: x402_a2a
-
-The `x402_a2a` library is a complete TypeScript port of the Python `x402_a2a` library, providing:
-
-### Core features
-
-- ✅ **Exception-based payment requirements** - Throw exceptions to request payments
-- ✅ **Dynamic pricing** - Set prices based on request parameters
-- ✅ **Type-safe implementation** - Full TypeScript support with type definitions
-- ✅ **ADK-compatible executors** - Optional middleware for common patterns
-- ✅ **Ethereum wallet integration** - Using ethers.js for signing
-
-### Architecture
-
-The library follows a "functional core, imperative shell" architecture:
-
-#### **types/** - Protocol data structures
-- `config.ts` - Configuration types
-- `state.ts` - Payment states and protocol types
-- `errors.ts` - Error types and x402PaymentRequiredException
-- `index.ts` - Type exports
-
-#### **core/** - Protocol implementation
-- `merchant.ts` - Payment requirements creation
-- `wallet.ts` - Payment signing and processing
-- `protocol.ts` - Verification and settlement
-- `utils.ts` - State management utilities
-- `helpers.ts` - Convenience helper functions
-- `agent.ts` - Agent card utilities
-
-#### **executors/** - Optional middleware
-- `base.ts` - Base executor class
-- `server.ts` - Server-side executor (merchant)
-- `client.ts` - Client-side executor (wallet)
-
-## Component overview
-
-### Client agent (orchestrator)
-
-The **client agent** is an orchestrator that:
-- Has a wallet with private keys
-- Can interact with multiple merchant agents
-- Automatically handles payment flows
-- Uses LLM-based parsing for natural language commands
-- Manages token approvals and payment signing
-
-**Key features:**
-- 🔐 Secure wallet integration with ERC-20 token support
-- 💰 Automatic USDC approval and payment handling
-- 🤖 Natural language understanding for purchase requests
-- ⛓️ Direct blockchain interaction on Base Sepolia
-- ✅ User confirmation before payments
-
-**Use cases:**
-- Personal shopping assistant
-- Automated procurement agent
-- Payment-enabled chatbot
-
-### Merchant agent (service provider)
-
-The **merchant agent** is a service provider that:
-- Receives product/service requests
-- Generates payment requirements dynamically
-- Validates payment signatures
-- Settles payments on-chain
-- Fulfills orders after payment confirmation
-
-**Key features:**
-- 💵 Dynamic hash-based pricing (deterministic pricing based on product name)
-- 🔍 Payment verification via facilitator
-- 📦 Order fulfillment workflow
-- 🛡️ Secure payment settlement
-- 🎯 ADK-powered agent framework
-
-**Use cases:**
-- E-commerce agent
-- API access control
-- Premium feature gating
-
-## Usage examples
-
-### Running the client agent
-
-```bash
-cd client-agent
-npm run dev
-```
-
-**Example interaction:**
-```
-You: hello
-Agent: Hi! I'm an x402 payment client agent. I can help you buy products
-       from merchants using USDC cryptocurrency. Your wallet is ready at
-       0xf59B...45b0e. Try asking me to buy something!
-
-You: I want to buy a banana
-Agent: The merchant is requesting 1.000000 USDC for a banana.
-       Would you like to proceed with this payment?
-
-You: yes
-Agent: [Approving token spending...]
-       ✅ Token approval confirmed
-       [Signing payment...]
-       ✅ Payment signed and submitted
-       ✅ Payment completed successfully!
-       Transaction: 0x...
-```
-
-### Running the merchant agent
-
-```bash
-cd merchant-agent
-npm run dev
-```
-
-The merchant agent runs as an API server at `http://localhost:10000` and automatically:
-1. Receives product requests
-2. Returns payment requirements
-3. Verifies payment signatures
-4. Settles transactions on-chain
-5. Confirms order fulfillment
-
-### Library usage
-
-#### Server-side (merchant)
+#### Merchant Side (Request Payment)
 
 ```typescript
-import { x402PaymentRequiredException } from 'x402-a2a-typescript';
+import { x402PaymentRequiredException } from 'a2a-x402';
 
 // In your agent tool, throw an exception to request payment:
 throw new x402PaymentRequiredException(
@@ -200,7 +24,7 @@ throw new x402PaymentRequiredException(
   {
     scheme: "exact",
     network: "base-sepolia",
-    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC
     payTo: "0xYourWalletAddress",
     maxAmountRequired: "1000000", // 1 USDC in atomic units
     resource: "/buy-product",
@@ -211,10 +35,10 @@ throw new x402PaymentRequiredException(
 );
 ```
 
-#### Client-side (wallet)
+#### Client Side (Process Payment)
 
 ```typescript
-import { processPayment, x402Utils } from 'x402-a2a-typescript';
+import { processPayment, x402Utils } from 'a2a-x402';
 import { Wallet } from 'ethers';
 
 const wallet = new Wallet(privateKey);
@@ -230,78 +54,85 @@ const paymentPayload = await processPayment(
 );
 ```
 
-## Comparison with Python implementation
+## ✨ Features
 
-| Feature | Python | TypeScript |
-|---------|--------|------------|
-| Language | Python 3.11+ | TypeScript 5.x |
-| Type System | Pydantic | TypeScript interfaces |
-| Wallet Library | eth-account | ethers.js |
-| ADK Integration | adk-sdk | adk-typescript |
-| Exception-based Flow | ✅ | ✅ |
-| Executors | ✅ | ✅ |
+- ✅ **Exception-based payment flow** - Throw exceptions to request payments dynamically
+- ✅ **Full TypeScript support** - Complete type definitions and interfaces
+- ✅ **Ethereum wallet integration** - Built on ethers.js for signing and verification
+- ✅ **Dynamic pricing** - Set prices based on request parameters
+- ✅ **Multi-network support** - Works with Base, Base Sepolia, and other EVM chains
+- ✅ **ERC-20 token payments** - Native support for USDC and other tokens
+- ✅ **ADK-compatible** - Works seamlessly with [ADK TypeScript](https://github.com/njraladdin/adk-typescript)
 
-## Key differences from python
+## 📦 What's Included
 
-1. **Type definitions**: TypeScript uses interfaces instead of Pydantic models
-2. **Wallet integration**: Uses ethers.js instead of eth-account
-3. **Crypto operations**: Uses native Web Crypto API where available
+The library provides a complete implementation of the x402 payment protocol:
 
-## Development
+### Core Modules
 
-### Building the library
+- **Payment Requirements** - Create and validate payment requests
+- **Wallet Integration** - Sign and process payments with ethers.js
+- **Protocol Verification** - Verify signatures and settle transactions
+- **State Management** - Track payment status and metadata
+- **Utility Functions** - Helper functions for common operations
 
-```bash
-cd x402_a2a
-npm run build
-```
+### Optional Executors
 
-### Cleaning build artifacts
+Abstract base classes for building payment-enabled agents:
+- `x402ServerExecutor` - For merchant/service provider agents
+- `x402ClientExecutor` - For client/wallet agents
 
-```bash
-cd x402_a2a
-npm run clean
-```
+## 📖 API Reference
 
-### Installing in another project
+### Core Functions
 
-```bash
-# In your project
-npm install file:../x402_a2a
-```
+#### `x402PaymentRequiredException`
 
-## 📖 Documentation
-
-For detailed protocol documentation, see:
-- [Python x402_a2a README](../../python/x402_a2a/README.md) - Complete protocol specification
-- [Merchant Agent README](merchant-agent/README.md) - Example agent usage
-
-## Key components
-
-### x402PaymentRequiredException
-
-The core exception class that enables dynamic payment requirements:
+The main exception class for requesting payments:
 
 ```typescript
 // Simple payment request
-throw await x402PaymentRequiredException.forService({
-  price: "$5.00",
-  payToAddress: "0x123...",
-  resource: "/premium-feature"
-});
+throw new x402PaymentRequiredException(
+  "Payment required",
+  {
+    scheme: "exact",
+    network: "base-sepolia",
+    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    payTo: "0xYourAddress",
+    maxAmountRequired: "1000000",
+    resource: "/service",
+    description: "Service payment",
+    mimeType: "application/json",
+    maxTimeoutSeconds: 1200,
+  }
+);
 
 // Multiple payment options
 throw new x402PaymentRequiredException(
   "Choose payment tier",
-  [basicRequirement, premiumRequirement, ultraRequirement]
+  [basicTier, premiumTier, ultraTier]
 );
 ```
 
-### x402Utils
+#### `processPayment()`
 
-State management utilities for working with tasks and metadata:
+Sign a payment with a wallet:
 
 ```typescript
+import { processPayment } from 'a2a-x402';
+import { Wallet } from 'ethers';
+
+const wallet = new Wallet(privateKey);
+const paymentPayload = await processPayment(requirements, wallet);
+```
+
+#### `x402Utils`
+
+Utility class for managing payment state:
+
+```typescript
+import { x402Utils } from 'a2a-x402';
+
 const utils = new x402Utils();
 
 // Get payment status
@@ -314,259 +145,200 @@ const requirements = utils.getPaymentRequirements(task);
 utils.recordPaymentSuccess(task, settleResponse);
 ```
 
-### x402ServerExecutor
+### Abstract Executors
 
-Abstract base class for implementing merchant agents:
+#### `x402ServerExecutor`
+
+Base class for merchant agents:
 
 ```typescript
+import { x402ServerExecutor } from 'a2a-x402';
+
 class MyMerchantExecutor extends x402ServerExecutor {
   async verifyPayment(payload, requirements) {
-    // Implement verification with your facilitator
+    // Verify signature and payment details
   }
 
   async settlePayment(payload, requirements) {
-    // Implement settlement with your facilitator
+    // Execute on-chain settlement
   }
 }
 ```
 
-## Testing & development
+#### `x402ClientExecutor`
 
-### End-to-End Payment Flow Test
+Base class for client agents:
 
-Test the complete payment flow with both agents:
+```typescript
+import { x402ClientExecutor } from 'a2a-x402';
 
-1. **Terminal 1 - Start merchant agent:**
-   ```bash
-   cd merchant-agent
-   npm run dev
-   ```
+class MyClientExecutor extends x402ClientExecutor {
+  async handlePaymentRequired(error, task) {
+    // Process payment requirements
+  }
+}
+```
 
-2. **Terminal 2 - Start client agent:**
-   ```bash
-   cd client-agent
-   npm run dev
-   ```
+## 🚀 Example Implementations
 
-3. **Client terminal - Make a purchase:**
-   ```
-   You: I want to buy a banana
-   Agent: The merchant is requesting 1.000000 USDC for a banana.
-          Would you like to proceed with this payment?
-   You: yes
-   Agent: ✅ Payment completed successfully!
-   ```
+This repository includes two fully functional example agents that demonstrate end-to-end payment flows:
 
-### Merchant payment flow test (standalone)
+### Client Agent
 
-Test just the merchant agent's payment verification:
+A payment-enabled orchestrator agent that can interact with merchants and process payments.
 
+**Install and run:**
+```bash
+cd client-agent
+npm install
+cp .env.example .env
+# Edit .env with your API keys and wallet
+npm run dev
+```
+
+**Features:**
+- 🔐 Secure wallet with ERC-20 support
+- 💰 Automatic USDC approvals
+- 🤖 Natural language purchase requests
+- ✅ User confirmation flows
+
+See [client-agent/README.md](client-agent/README.md) for details.
+
+### Merchant Agent
+
+A service provider agent that requests payments, verifies signatures, and settles transactions.
+
+**Install and run:**
 ```bash
 cd merchant-agent
+npm install
+cp .env.example .env
+# Edit .env with your API keys and wallet
+npm run dev
+```
+
+**Features:**
+- 💵 Dynamic pricing
+- 🔍 Payment verification
+- 📦 Order fulfillment
+- 🛡️ Secure settlement
+
+See [merchant-agent/README.md](merchant-agent/README.md) for details.
+
+### Full Demo
+
+Run both agents to see the complete payment flow:
+
+**Terminal 1 - Merchant:**
+```bash
+cd merchant-agent && npm run dev
+```
+
+**Terminal 2 - Client:**
+```bash
+cd client-agent && npm run dev
+```
+
+**Client terminal:**
+```
+You: I want to buy a banana
+Agent: The merchant is requesting 1.000000 USDC for a banana. Proceed?
+You: yes
+Agent: ✅ Payment completed! Transaction: 0x...
+```
+
+## 🔧 Development
+
+### Local Development
+
+If you want to modify the library locally and test with your agents:
+
+```bash
+# Clone and build the library
+git clone <repo-url>
+cd a2a-x402-typescript/x402_a2a
+npm install
+npm run build
+
+# Link for local development
+cd ../your-project
+npm install a2a-x402
+```
+
+### Testing
+
+The example agents include test scripts:
+
+```bash
+# Test merchant payment flow
+cd merchant-agent
 npm run test:payment
+
+# Test client agent
+cd client-agent
+npm run dev
 ```
 
-This simulates:
-- Product request
-- Payment requirement generation
-- Client signature
-- Payment verification
-- Transaction settlement
+## 🌐 Supported Networks
 
-### Available commands
+The library works with any EVM-compatible network. The example agents use:
 
-#### Client agent
-```bash
-npm run dev        # Start in CLI mode
-npm run web        # Start with web UI
-npm run build      # Compile TypeScript
-```
-
-#### Merchant agent
-```bash
-npm run dev              # Start as API server (port 10000)
-npm run web              # Start with web UI
-npm run test:payment     # Test payment flow standalone
-npm run build            # Compile TypeScript
-```
-
-#### x402_a2a library
-```bash
-npm run build      # Compile library
-npm run clean      # Remove build artifacts
-```
-
-## Configuration
-
-### Environment variables
-
-Both agents require configuration via `.env` files.
-
-#### Client agent (`.env`)
-```bash
-# Required
-GOOGLE_API_KEY=your_gemini_api_key_here
-WALLET_PRIVATE_KEY=0xYourClientPrivateKey
-BASE_SEPOLIA_RPC_URL=https://base-sepolia.g.alchemy.com/v2/YOUR_KEY
-
-# Optional
-MERCHANT_AGENT_URL=http://localhost:10000/agents/merchant
-```
-
-#### Merchant agent (`.env`)
-```bash
-# Required
-GOOGLE_API_KEY=your_gemini_api_key_here
-WALLET_PRIVATE_KEY=0xYourMerchantPrivateKey
-
-# Optional
-PORT=10000
-```
-
-### Wallet setup
-
-Both agents need wallets with funds:
-
-**Client wallet:**
-- ETH for gas fees
-- USDC for payments
-
-**Merchant wallet:**
-- ETH for settlement gas fees
-
-Get testnet funds:
-- **ETH**: https://www.alchemy.com/faucets/base-sepolia or https://faucet.quicknode.com/base/sepolia
-- **USDC**: https://faucet.circle.com/ (select "Base Sepolia" network)
-
-### Network details
-
-**Base Sepolia (testnet)**
-- Chain ID: 84532
-- RPC: `https://base-sepolia.g.alchemy.com/v2/YOUR_KEY` or `https://sepolia.base.org`
+### Base Sepolia (Testnet)
+- Chain ID: `84532`
+- RPC: `https://sepolia.base.org`
 - USDC: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
 - Explorer: https://sepolia.basescan.org/
+- Faucets:
+  - ETH: https://www.alchemy.com/faucets/base-sepolia
+  - USDC: https://faucet.circle.com/
 
-**Base Mainnet (production)**
-- Chain ID: 8453
-- RPC: `https://base-mainnet.g.alchemy.com/v2/YOUR_KEY` or `https://mainnet.base.org`
+### Base Mainnet (Production)
+- Chain ID: `8453`
+- RPC: `https://mainnet.base.org`
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
 
-## Security considerations
+## 🔒 Security
 
-### Private key management
+### Best Practices
 
-⚠️ **CRITICAL**: Private keys have full control over wallet funds!
+⚠️ **Private Key Management**
+- Never commit private keys or `.env` files
+- Use separate wallets for testing and production
+- Keep minimal balances in hot wallets
+- Consider hardware wallets for production
 
-- Never commit `.env` files to git (included in `.gitignore`)
-- Use separate wallets for testing vs. production
-- Consider hardware wallet integration for production
-- Rotate keys regularly
-- Use minimal balances for testing
+### Token Approvals
 
-### Approval limits
-
-The client wallet approves with a 10% buffer:
+The example client agent uses a 10% buffer for approvals:
 ```typescript
-// Approve 110 USDC if merchant requests 100 USDC
 const approvalAmount = (amount * 110n) / 100n;
 ```
 
-You can revoke approvals anytime:
-```bash
-# Using cast (Foundry)
-cast send $USDC_ADDRESS "approve(address,uint256)" \
-  $MERCHANT_ADDRESS 0 \
-  --rpc-url $BASE_SEPOLIA_RPC_URL \
-  --private-key $WALLET_PRIVATE_KEY
-```
+Always review approval amounts before signing transactions.
 
-## Troubleshooting
-
-### Common issues
-
-**Issue: "Insufficient balance"**
-```bash
-# Check USDC balance
-cast call $USDC_ADDRESS "balanceOf(address)(uint256)" $YOUR_ADDRESS \
-  --rpc-url $BASE_SEPOLIA_RPC_URL
-
-# Get testnet USDC at: https://faucet.circle.com/
-```
-
-**Issue: "Insufficient allowance"**
-```bash
-# Check current allowance
-cast call $USDC_ADDRESS "allowance(address,address)(uint256)" \
-  $CLIENT_ADDRESS $MERCHANT_ADDRESS \
-  --rpc-url $BASE_SEPOLIA_RPC_URL
-
-# The wallet should auto-approve, but you can manually approve if needed
-```
-
-**Issue: "Failed to parse user message"**
-
-The client agent uses LLM-based parsing. If it fails:
-- Check your `GOOGLE_API_KEY` is valid
-- Try more explicit phrasing: "I want to buy a banana"
-- Check the fallback regex supports your product name
-
-**Issue: "Connection refused to merchant"**
-
-Ensure the merchant agent is running:
-```bash
-# Terminal 1
-cd merchant-agent
-npm run dev
-
-# Terminal 2 - check it's running
-curl http://localhost:10000/health
-```
-
-## 🤝 Contributing
-
-When making changes:
-
-1. Update TypeScript source files in the appropriate directory
-2. Run `npm run build` to compile
-3. Test with both client and merchant agents
-4. Ensure TypeScript compilation succeeds without errors
-5. Update documentation if adding features
-
-### Adding new features
-
-**To add a new product:**
-- Client: Update the LLM parsing examples in `parseUserMessage()`
-- Merchant: Products are recognized automatically; pricing is hash-based by default
-
-**To change pricing:**
-- Edit `getProductPrice()` function in `merchant-agent/agent.ts` (currently uses SHA-256 hash of product name)
-- Options: Fixed pricing, database lookups, API calls, tiered pricing, etc.
-
-**To add payment methods:**
-- Extend the payment requirements in both agents
-- Update the wallet to support new tokens/networks
-
-## 📚 Further reading
+## 📚 Additional Resources
 
 ### Documentation
-- **Client Agent**: [client-agent/README.md](client-agent/README.md)
-- **Merchant Agent**: [merchant-agent/README.md](merchant-agent/README.md)
-- **x402 Library**: Core protocol implementation
-- **Deployment**: [merchant-agent/DEPLOYMENT.md](merchant-agent/DEPLOYMENT.md)
+- [Client Agent README](client-agent/README.md) - Wallet agent implementation details
+- [Merchant Agent README](merchant-agent/README.md) - Service provider implementation
+- [Deployment Guide](merchant-agent/DEPLOYMENT.md) - Production deployment instructions
 
-### Related implementations
-- **Python Implementation**: [google-agentic-commerce/a2a-x402/tree/main/python/x402_a2a](https://github.com/google-agentic-commerce/a2a-x402/tree/main/python/x402_a2a) - Full protocol spec
-- **Python Demo**: [google-agentic-commerce/a2a-x402/tree/main/python/examples/adk-demo](https://github.com/google-agentic-commerce/a2a-x402/tree/main/python/examples/adk-demo) - Reference implementation
+### Related Projects
+- [ADK TypeScript](https://github.com/njraladdin/adk-typescript) - Agent Development Kit for TypeScript
+- [Python x402 Implementation](https://github.com/google-agentic-commerce/a2a-x402) - Original protocol specification
 
 ## 📄 License
 
-Apache-2.0 - See LICENSE file for details
+Apache-2.0 - See [LICENSE](LICENSE) for details
 
-## 🎯 What's next?
+## 🎯 Getting Started
 
-1. **Try the demo**: Follow the Quick Start guide
-2. **Customize pricing**: Modify the merchant agent's pricing logic
-3. **Add products**: Extend the product catalog
-4. **Deploy**: Use the deployment guide for production setup
-5. **Build your own**: Use the library to create custom payment-enabled agents
+1. **Install the package**: `npm install a2a-x402`
+2. **Try the examples**: Run the client and merchant agents
+3. **Build your agent**: Use the library in your own project
+4. **Customize**: Adapt the example agents to your needs
+
+## 🤝 Contributing
+
+Contributions welcome! Please feel free to submit a Pull Request.
