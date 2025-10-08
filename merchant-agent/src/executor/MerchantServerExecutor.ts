@@ -28,7 +28,7 @@ import {
   settlePayment,
   DefaultFacilitatorClient,
   FacilitatorClient,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 
 export class MerchantServerExecutor extends x402ServerExecutor {
   private facilitator?: FacilitatorClient;

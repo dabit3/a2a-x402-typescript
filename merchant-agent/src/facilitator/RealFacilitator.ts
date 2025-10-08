@@ -22,7 +22,7 @@ import {
   VerifyResponse,
   SettleResponse,
   ExactPaymentPayload,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 import { ethers } from 'ethers';
 
 // Standard ERC20 ABI for the functions we need

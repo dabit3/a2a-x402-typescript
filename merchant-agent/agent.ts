@@ -27,7 +27,7 @@ import { createHash } from 'crypto';
 import {
   x402PaymentRequiredException,
   PaymentRequirements,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 
 // --- Merchant Agent Configuration ---
 

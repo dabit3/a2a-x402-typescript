@@ -1,0 +1,39 @@
+# Source files
+*.ts
+!*.d.ts
+
+# Config files
+tsconfig*.json
+.gitignore
+.npmignore
+
+# Development
+node_modules
+src
+test
+tests
+*.test.*
+*.spec.*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# Build artifacts
+*.tsbuildinfo
+
+# Documentation (if you want to exclude)
+docs
+
+# Examples (if you want to exclude)
+examples

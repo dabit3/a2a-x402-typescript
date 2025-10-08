@@ -27,7 +27,7 @@ import {
   PaymentStatus,
   x402Utils,
   TaskState,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 import { InvocationContext } from 'adk-typescript/agents';
 import { Session } from 'adk-typescript/sessions';
 import { Content } from 'adk-typescript/models';

@@ -22,7 +22,7 @@ import {
   PaymentRequirements,
   VerifyResponse,
   SettleResponse,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 
 export class ProductionFacilitatorClient implements FacilitatorClient {
   private config: FacilitatorConfig;

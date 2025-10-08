@@ -22,7 +22,7 @@ import {
   VerifyResponse,
   SettleResponse,
   ExactPaymentPayload,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 
 export class MockFacilitatorClient implements FacilitatorClient {
   private isValid: boolean;

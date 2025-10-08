@@ -21,7 +21,7 @@
 import { LlmAgent as Agent } from 'adk-typescript/agents';
 import { ToolContext } from 'adk-typescript/tools';
 import { LocalWallet } from './src/wallet/Wallet';
-import { x402Utils, PaymentStatus } from 'x402-a2a-typescript';
+import { x402Utils, PaymentStatus } from 'a2a-x402';
 import { logger } from './src/logger';
 
 // --- Client Agent Configuration ---

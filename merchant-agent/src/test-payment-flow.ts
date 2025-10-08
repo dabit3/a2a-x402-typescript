@@ -31,7 +31,7 @@ import {
   Task,
   TaskState,
   Message,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 import { MerchantServerExecutor } from './executor/MerchantServerExecutor';
 import { createHash } from 'crypto';
 

@@ -23,7 +23,7 @@ import {
   PaymentPayload,
   x402PaymentRequiredResponse,
   PaymentRequirements,
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 
 // ERC20 ABI for approve, allowance, transfer, and transferFrom functions
 const ERC20_ABI = [

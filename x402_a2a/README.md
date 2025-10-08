@@ -7,7 +7,7 @@ This is the TypeScript port of the Python `x402_a2a` library.
 ## Installation
 
 ```bash
-npm install x402-a2a-typescript
+npm install a2a-x402
 ```
 
 ## Quick Start
@@ -15,7 +15,7 @@ npm install x402-a2a-typescript
 ### Server-Side (Merchant Agent)
 
 ```typescript
-import { x402PaymentRequiredException } from 'x402-a2a-typescript';
+import { x402PaymentRequiredException } from 'a2a-x402';
 
 // In your agent logic, throw an exception to request payment:
 throw x402PaymentRequiredException.forService({
@@ -28,7 +28,7 @@ throw x402PaymentRequiredException.forService({
 ### Client-Side (Wallet/Signing)
 
 ```typescript
-import { processPayment, x402Utils } from 'x402-a2a-typescript';
+import { processPayment, x402Utils } from 'a2a-x402';
 import { Wallet } from 'ethers';
 
 const wallet = new Wallet(privateKey);
@@ -49,7 +49,7 @@ const paymentPayload = await processPayment(
 The library now includes a default facilitator that connects to `https://x402.org/facilitator` (matching Python behavior):
 
 ```typescript
-import { verifyPayment, settlePayment } from 'x402-a2a-typescript';
+import { verifyPayment, settlePayment } from 'a2a-x402';
 
 // Uses default facilitator automatically
 const verifyResult = await verifyPayment(paymentPayload, requirements);
@@ -59,7 +59,7 @@ const settleResult = await settlePayment(paymentPayload, requirements);
 To use a custom facilitator:
 
 ```typescript
-import { DefaultFacilitatorClient } from 'x402-a2a-typescript';
+import { DefaultFacilitatorClient } from 'a2a-x402';
 
 // Custom facilitator URL
 const facilitator = new DefaultFacilitatorClient({
@@ -98,7 +98,7 @@ import {
   PaymentRequirements,
   VerifyResponse,
   SettleResponse
-} from 'x402-a2a-typescript';
+} from 'a2a-x402';
 
 export class MyCustomFacilitator implements FacilitatorClient {
   async verify(
@@ -140,7 +140,7 @@ export class MyCustomFacilitator implements FacilitatorClient {
 When implementing a merchant agent with the `x402ServerExecutor`, you can provide your custom facilitator:
 
 ```typescript
-import { x402ServerExecutor, verifyPayment, settlePayment } from 'x402-a2a-typescript';
+import { x402ServerExecutor, verifyPayment, settlePayment } from 'a2a-x402';
 
 export class MerchantServerExecutor extends x402ServerExecutor {
   private facilitator?: FacilitatorClient;
