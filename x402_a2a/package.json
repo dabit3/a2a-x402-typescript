@@ -1,7 +1,7 @@
 {
   "name": "a2a-x402",
-  "version": "0.0.2",
-  "description": "Official x402 payment protocol extension for A2A (TypeScript)",
+  "version": "0.0.3",
+  "description": "x402 payment protocol extension for A2A (TypeScript)",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
