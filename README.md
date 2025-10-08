@@ -5,15 +5,15 @@ A complete TypeScript implementation of the x402 payment protocol extension for 
 [![npm version](https://badge.fury.io/js/a2a-x402.svg)](https://www.npmjs.com/package/a2a-x402)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## ⚡️ Quick Start
+## Quick start
 
 ```bash
 npm install a2a-x402
 ```
 
-### Basic Usage
+### Basic usage
 
-#### Merchant Side (Request Payment)
+#### Merchant side (request payment)
 
 ```typescript
 import { x402PaymentRequiredException } from 'a2a-x402';
@@ -35,7 +35,7 @@ throw new x402PaymentRequiredException(
 );
 ```
 
-#### Client Side (Process Payment)
+#### Client side (process payment)
 
 ```typescript
 import { processPayment, x402Utils } from 'a2a-x402';
@@ -54,37 +54,37 @@ const paymentPayload = await processPayment(
 );
 ```
 
-## ✨ Features
+## Features
 
-- ✅ **Exception-based payment flow** - Throw exceptions to request payments dynamically
-- ✅ **Full TypeScript support** - Complete type definitions and interfaces
-- ✅ **Ethereum wallet integration** - Built on ethers.js for signing and verification
-- ✅ **Dynamic pricing** - Set prices based on request parameters
-- ✅ **Multi-network support** - Works with Base, Base Sepolia, and other EVM chains
-- ✅ **ERC-20 token payments** - Native support for USDC and other tokens
-- ✅ **ADK-compatible** - Works seamlessly with [ADK TypeScript](https://github.com/njraladdin/adk-typescript)
+- **Exception-based payment flow** - Throw exceptions to request payments dynamically
+- **Full TypeScript support** - Complete type definitions and interfaces
+- **Ethereum wallet integration** - Built on ethers.js for signing and verification
+- **Dynamic pricing** - Set prices based on request parameters
+- **Multi-network support** - Works with Base, Base Sepolia, and other EVM chains
+- **ERC-20 token payments** - Native support for USDC and other tokens
+- **ADK-compatible** - Works seamlessly with [ADK TypeScript](https://github.com/njraladdin/adk-typescript)
 
-## 📦 What's Included
+## What's included
 
 The library provides a complete implementation of the x402 payment protocol:
 
-### Core Modules
+### Core modules
 
-- **Payment Requirements** - Create and validate payment requests
-- **Wallet Integration** - Sign and process payments with ethers.js
-- **Protocol Verification** - Verify signatures and settle transactions
-- **State Management** - Track payment status and metadata
-- **Utility Functions** - Helper functions for common operations
+- **Payment requirements** - Create and validate payment requests
+- **Wallet integration** - Sign and process payments with ethers.js
+- **Protocol verification** - Verify signatures and settle transactions
+- **State management** - Track payment status and metadata
+- **Utility functions** - Helper functions for common operations
 
-### Optional Executors
+### Optional executors
 
 Abstract base classes for building payment-enabled agents:
 - `x402ServerExecutor` - For merchant/service provider agents
 - `x402ClientExecutor` - For client/wallet agents
 
-## 📖 API Reference
+## API reference
 
-### Core Functions
+### Core functions
 
 #### `x402PaymentRequiredException`
 
@@ -145,7 +145,7 @@ const requirements = utils.getPaymentRequirements(task);
 utils.recordPaymentSuccess(task, settleResponse);
 ```
 
-### Abstract Executors
+### Abstract executors
 
 #### `x402ServerExecutor`
 
@@ -179,11 +179,11 @@ class MyClientExecutor extends x402ClientExecutor {
 }
 ```
 
-## 🚀 Example Implementations
+## Example implementations
 
 This repository includes two fully functional example agents that demonstrate end-to-end payment flows:
 
-### Client Agent
+### Client agent
 
 A payment-enabled orchestrator agent that can interact with merchants and process payments.
 
@@ -197,14 +197,14 @@ npm run dev
 ```
 
 **Features:**
-- 🔐 Secure wallet with ERC-20 support
-- 💰 Automatic USDC approvals
-- 🤖 Natural language purchase requests
-- ✅ User confirmation flows
+- Secure wallet with ERC-20 support
+- Automatic USDC approvals
+- Natural language purchase requests
+- User confirmation flows
 
 See [client-agent/README.md](client-agent/README.md) for details.
 
-### Merchant Agent
+### Merchant agent
 
 A service provider agent that requests payments, verifies signatures, and settles transactions.
 
@@ -218,14 +218,14 @@ npm run dev
 ```
 
 **Features:**
-- 💵 Dynamic pricing
-- 🔍 Payment verification
-- 📦 Order fulfillment
-- 🛡️ Secure settlement
+- Dynamic pricing
+- Payment verification
+- Order fulfillment
+- Secure settlement
 
 See [merchant-agent/README.md](merchant-agent/README.md) for details.
 
-### Full Demo
+### Full demo
 
 Run both agents to see the complete payment flow:
 
@@ -244,12 +244,12 @@ cd client-agent && npm run dev
 You: I want to buy a banana
 Agent: The merchant is requesting 1.000000 USDC for a banana. Proceed?
 You: yes
-Agent: ✅ Payment completed! Transaction: 0x...
+Agent: Payment completed! Transaction: 0x...
 ```
 
-## 🔧 Development
+## Development
 
-### Local Development
+### Local development
 
 If you want to modify the library locally and test with your agents:
 
@@ -279,11 +279,11 @@ cd client-agent
 npm run dev
 ```
 
-## 🌐 Supported Networks
+## Supported networks
 
 The library works with any EVM-compatible network. The example agents use:
 
-### Base Sepolia (Testnet)
+### Base Sepolia (testnet)
 - Chain ID: `84532`
 - RPC: `https://sepolia.base.org`
 - USDC: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
@@ -292,23 +292,23 @@ The library works with any EVM-compatible network. The example agents use:
   - ETH: https://www.alchemy.com/faucets/base-sepolia
   - USDC: https://faucet.circle.com/
 
-### Base Mainnet (Production)
+### Base Mainnet (production)
 - Chain ID: `8453`
 - RPC: `https://mainnet.base.org`
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
 
-## 🔒 Security
+## Security
 
-### Best Practices
+### Best practices
 
-⚠️ **Private Key Management**
+**Private key management:**
 - Never commit private keys or `.env` files
 - Use separate wallets for testing and production
 - Keep minimal balances in hot wallets
 - Consider hardware wallets for production
 
-### Token Approvals
+### Token approvals
 
 The example client agent uses a 10% buffer for approvals:
 ```typescript
@@ -317,28 +317,28 @@ const approvalAmount = (amount * 110n) / 100n;
 
 Always review approval amounts before signing transactions.
 
-## 📚 Additional Resources
+## Additional resources
 
 ### Documentation
-- [Client Agent README](client-agent/README.md) - Wallet agent implementation details
-- [Merchant Agent README](merchant-agent/README.md) - Service provider implementation
-- [Deployment Guide](merchant-agent/DEPLOYMENT.md) - Production deployment instructions
+- [Client agent README](client-agent/README.md) - Wallet agent implementation details
+- [Merchant agent README](merchant-agent/README.md) - Service provider implementation
+- [Deployment guide](merchant-agent/DEPLOYMENT.md) - Production deployment instructions
 
-### Related Projects
+### Related projects
 - [ADK TypeScript](https://github.com/njraladdin/adk-typescript) - Agent Development Kit for TypeScript
-- [Python x402 Implementation](https://github.com/google-agentic-commerce/a2a-x402) - Original protocol specification
+- [Python x402 implementation](https://github.com/google-agentic-commerce/a2a-x402) - Original protocol specification
 
-## 📄 License
+## License
 
 Apache-2.0 - See [LICENSE](LICENSE) for details
 
-## 🎯 Getting Started
+## Getting started
 
-1. **Install the package**: `npm install a2a-x402`
-2. **Try the examples**: Run the client and merchant agents
-3. **Build your agent**: Use the library in your own project
-4. **Customize**: Adapt the example agents to your needs
+1. Install the package: `npm install a2a-x402`
+2. Try the examples: Run the client and merchant agents
+3. Build your agent: Use the library in your own project
+4. Customize: Adapt the example agents to your needs
 
-## 🤝 Contributing
+## Contributing
 
 Contributions welcome! Please feel free to submit a Pull Request.
