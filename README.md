@@ -1,6 +1,6 @@
 # a2a-x402
 
-A complete TypeScript implementation of the x402 payment protocol extension for A2A (Agent-to-Agent) communication. Enable your AI agents to request, verify, and settle crypto payments seamlessly.
+A complete TypeScript implementation of the [Python x402 payment protocol extension](https://github.com/google-agentic-commerce/a2a-x402) for A2A (Agent-to-Agent) communication. Enable your AI agents to request, verify, and settle crypto payments seamlessly.
 
 [![npm version](https://badge.fury.io/js/a2a-x402.svg)](https://www.npmjs.com/package/a2a-x402)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
