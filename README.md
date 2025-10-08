@@ -187,7 +187,7 @@ The merchant agent runs as an API server at `http://localhost:10000` and automat
 4. Settles transactions on-chain
 5. Confirms order fulfillment
 
-### Library usage (advanced)
+### Library usage
 
 #### Server-side (merchant)
 
