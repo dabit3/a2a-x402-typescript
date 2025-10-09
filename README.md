@@ -298,6 +298,12 @@ The library works with any EVM-compatible network. The example agents use:
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
 
+### Taiko Mainnet (production)
+- Chain ID: `167000`
+- RPC: `https://rpc.mainnet.taiko.xyz`
+- USDC: `0x07d83526730c7438048d55a4fc0b850e2aab6f0b`
+- Explorer: https://taikoscan.io
+
 ## Security
 
 ### Best practices

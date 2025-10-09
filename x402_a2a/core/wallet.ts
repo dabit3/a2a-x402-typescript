@@ -165,6 +165,7 @@ function getChainId(network: string): number {
     "base-sepolia": 84532,
     "ethereum": 1,
     "polygon": 137,
+    "taiko": 167000,
   };
   return chainIds[network] || 84532;
 }
