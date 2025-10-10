@@ -73,7 +73,7 @@ class MockAgentExecutor {
     console.log(`   Price: ${priceUSDC} USDC`);
 
     // Import to throw the exception
-    const { x402PaymentRequiredException } = await import('x402-a2a-typescript');
+    const { x402PaymentRequiredException } = await import('a2a-x402');
 
     const requirements: PaymentRequirements = {
       scheme: "exact",
