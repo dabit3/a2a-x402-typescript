@@ -24,7 +24,7 @@ This demonstrates:
 npm run dev
 ```
 
-Server runs at `http://localhost:10000` using ADK's built-in API server.
+Server runs at `http://localhost:10000` using a custom HTTP server with full x402 payment processing.
 
 ## Configuration
 
@@ -76,11 +76,9 @@ USDC_CONTRACT=0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174
 
 ## Production Deployment
 
-### Deployment Approaches
+### Running the Server
 
-#### Option A: ADK API Server (Recommended for Getting Started)
-
-The simplest way to run the merchant agent is using ADK's built-in API server:
+The merchant agent uses a custom HTTP server that wraps the agent with `MerchantServerExecutor` for full x402 payment processing.
 
 **Development:**
 ```bash
@@ -91,36 +89,15 @@ npm run dev
 **Production:**
 ```bash
 npm run build
-adk api_server --port 10000 --agent-dir ./dist
+npm run start:prod
 ```
 
-**Advantages:**
-- ✅ Zero configuration required
-- ✅ Built-in API server
-- ✅ Auto-reload on file changes
-- ✅ Works immediately
-
-**Limitations:**
-- ⚠️ Payment executor wrapper needs manual integration
-- ⚠️ Requires ADK CLI tooling
-
-#### Option B: Custom HTTP Server with Executor (Advanced)
-
-For full x402 payment processing with automatic verification and settlement, use the custom server (`server.ts`):
-
-**Status:** 🚧 In Development
-
-**When complete:**
-```bash
-npm run start        # Development
-npm run start:prod   # Production
-```
-
-The custom server is designed to:
-- ✅ Wrap the agent with `MerchantServerExecutor`
-- ✅ Use the default facilitator (`https://x402.org/facilitator`)
-- ✅ Handle payment verification and settlement automatically
-- ✅ Provide HTTP API for client integration
+**Features:**
+- Wraps the agent with `MerchantServerExecutor`
+- Uses the default facilitator at `https://x402.org/facilitator`
+- Handles payment verification and settlement automatically
+- Provides HTTP API for client integration
+- Maintains session state across requests
 
 ### Deployment Options
 
