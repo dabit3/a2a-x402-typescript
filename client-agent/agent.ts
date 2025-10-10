@@ -26,7 +26,7 @@ import { logger } from './src/logger';
 
 // --- Client Agent Configuration ---
 
-const MERCHANT_AGENT_URL = process.env.MERCHANT_AGENT_URL || 'http://localhost:10000/agents/merchant';
+const MERCHANT_AGENT_URL = process.env.MERCHANT_AGENT_URL || 'http://localhost:10000';
 
 logger.log(`🤖 Client Agent Configuration:
   Merchant URL: ${MERCHANT_AGENT_URL}
@@ -38,6 +38,7 @@ const x402 = new x402Utils();
 
 // State management
 interface AgentState {
+  sessionId?: string;
   pendingPayment?: {
     agentUrl: string;
     agentName: string;
@@ -49,94 +50,38 @@ interface AgentState {
 
 const state: AgentState = {};
 
-// --- Tool Functions ---
+// Helper to ensure we have a session
+async function ensureSession(): Promise<string> {
+  if (state.sessionId) {
+    return state.sessionId;
+  }
 
-/**
- * Parse user message using LLM to extract product name
- */
-async function parseUserMessage(message: string): Promise<{ isPurchase: boolean; product?: string }> {
-  const { VertexAI } = await import('@google-cloud/vertexai');
-
-  const vertexAI = new VertexAI({
-    project: process.env.GOOGLE_CLOUD_PROJECT || 'your-project-id',
-    location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
-  });
-
-  const model = vertexAI.preview.getGenerativeModel({
-    model: 'gemini-2.0-flash-exp',
-  });
-
-  const prompt = `Analyze this user message and determine if it's a purchase request. If it is, extract the product name.
-
-User message: "${message}"
-
-Respond ONLY with valid JSON in this exact format:
-{
-  "isPurchase": true/false,
-  "product": "product name" or null
-}
-
-Examples:
-- "I want to buy a banana" -> {"isPurchase": true, "product": "banana"}
-- "buy banana" -> {"isPurchase": true, "product": "banana"}
-- "get me an apple please" -> {"isPurchase": true, "product": "apple"}
-- "hello" -> {"isPurchase": false, "product": null}
-- "what can you do?" -> {"isPurchase": false, "product": null}`;
-
+  // Create a new session
   try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const response = await fetch(`${MERCHANT_AGENT_URL}/apps/x402_merchant_agent/users/client-user/sessions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
 
-    // Extract JSON from response (handle markdown code blocks if present)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const jsonText = jsonMatch ? jsonMatch[0] : text;
-
-    const parsed = JSON.parse(jsonText);
-    logger.log(`✅ LLM parsed message: isPurchase=${parsed.isPurchase}, product=${parsed.product}`);
-    return {
-      isPurchase: parsed.isPurchase === true,
-      product: parsed.product || undefined,
-    };
-  } catch (error) {
-    logger.error('⚠️  LLM parsing failed, using fallback regex:', error);
-    // Fallback to enhanced regex that can extract any product name
-    const lowerMessage = message.toLowerCase();
-
-    // Try to match purchase intent and extract product name
-    // Patterns like: "buy [product]", "want to buy [product]", "purchase [product]"
-    const buyPatterns = [
-      /(?:want to |would like to |can i |please )?(?:buy|purchase|get)(?: an?| the| some)?\s+(?:["']([^"']+)["']|(\S+(?:\s+\S+)*))/i,
-      /(?:how much|price|cost)(?: is| for)(?: an?| the| some)?\s+(?:["']([^"']+)["']|(\S+(?:\s+\S+)*))/i,
-    ];
-
-    for (const pattern of buyPatterns) {
-      const match = message.match(pattern);
-      if (match) {
-        // Extract from either quoted string (group 1) or unquoted (group 2)
-        const product = (match[1] || match[2])?.trim();
-        if (product) {
-          logger.log(`✅ Fallback regex parsed: isPurchase=true, product=${product}`);
-          return {
-            isPurchase: true,
-            product: product,
-          };
-        }
-      }
+    if (!response.ok) {
+      throw new Error(`Failed to create session: ${response.status}`);
     }
 
-    // No match found
-    logger.log('⚠️  No purchase intent detected in message');
-    return {
-      isPurchase: false,
-      product: undefined,
-    };
+    const session = await response.json() as any;
+    state.sessionId = session.id;
+    logger.log(`✅ Created new session: ${state.sessionId}`);
+    return state.sessionId!;
+  } catch (error) {
+    logger.error('❌ Failed to create session:', error);
+    throw error;
   }
 }
 
+// --- Tool Functions ---
+
 /**
- * Send a message to a remote merchant agent
- * For demo purposes, this simulates the merchant's response
+ * Send a message to a remote merchant agent using ADK protocol
  */
 async function sendMessageToMerchant(
   params: Record<string, any>,
@@ -147,53 +92,114 @@ async function sendMessageToMerchant(
 
   logger.log(`\n📤 Sending message to merchant: "${message}"`);
 
-  // Use LLM to parse the message
-  const parsed = await parseUserMessage(String(message));
+  try {
+    // Ensure we have a session
+    const sessionId = await ensureSession();
 
-  if (parsed.isPurchase && parsed.product) {
-    const product = parsed.product;
-
-    // Simulate merchant response with payment requirements
-    // In reality, this would come from the merchant agent
-    // Fixed price: 1 USDC = 1,000,000 atomic units
-    const price = 1_000_000;
-    const priceUSDC = '1.000000';
-
-    // Store payment requirements in state
-    state.pendingPayment = {
-      agentUrl: MERCHANT_AGENT_URL,
-      agentName: 'merchant_agent',
-      requirements: {
-        accepts: [{
-          scheme: 'exact',
-          network: 'base-sepolia',
-          asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-          payTo: process.env.MERCHANT_WALLET_ADDRESS,
-          maxAmountRequired: price.toString(),
-          maxTimeoutSeconds: 1200,
-          extra: {
-            name: 'USDC',
-            product: { name: product },
-          },
-        }],
+    // Make real HTTP request to merchant server using ADK /run endpoint
+    const response = await fetch(`${MERCHANT_AGENT_URL}/run`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    };
+      body: JSON.stringify({
+        appName: 'x402_merchant_agent',
+        userId: 'client-user',
+        sessionId: sessionId,
+        newMessage: {
+          role: 'user',
+          parts: [{ text: String(message) }],
+        },
+      }),
+    });
 
-    logger.log(`💰 Payment required: ${priceUSDC} USDC for ${product}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error(`❌ Merchant server error (${response.status}): ${errorText}`);
+      return `Sorry, I couldn't connect to the merchant. The server returned an error: ${response.status}. Make sure the merchant server is running at ${MERCHANT_AGENT_URL}`;
+    }
 
-    return `The merchant agent responded! They're selling ${product} for ${priceUSDC} USDC.
+    const events = await response.json() as any[];
+    logger.log(`✅ Received ${events.length} events from merchant`);
+    logger.log('📊 All events:', JSON.stringify(events, null, 2));
+
+    // ADK returns an array of events - process them
+    // CRITICAL: Check ALL events for payment requirements FIRST, then process text responses
+    // This is because the merchant sends both the agent's text response AND the payment requirement
+
+    // First pass: Look for payment requirements in ANY event
+    for (const event of events) {
+      logger.log(`\n🔍 Processing event (pass 1 - payment check):
+        - author: ${event.author || 'unknown'}
+        - errorCode: ${event.errorCode || 'none'}
+        - has content: ${!!event.content}
+        - has errorData: ${!!event.errorData}`);
+
+      // Check if this is an x402 payment exception
+      if (event.errorCode && event.errorCode === 'x402_payment_required') {
+        logger.log('🎯 Found payment requirement event!');
+        const paymentReqs = event.errorData?.paymentRequirements;
+        logger.log(`Payment requirements data:`, JSON.stringify(paymentReqs, null, 2));
+
+        if (paymentReqs && paymentReqs.accepts && paymentReqs.accepts.length > 0) {
+          const paymentOption = paymentReqs.accepts[0];
+          const price = BigInt(paymentOption.maxAmountRequired);
+          const priceUSDC = (Number(price) / 1_000_000).toFixed(6);
+          const productName = paymentOption.extra?.product?.name || 'product';
+
+          // Store payment requirements in state
+          state.pendingPayment = {
+            agentUrl: MERCHANT_AGENT_URL,
+            agentName: 'merchant_agent',
+            requirements: paymentReqs,
+            taskId: event.invocationId,
+            contextId: event.invocationId,
+          };
+
+          logger.log(`💰 Payment required: ${priceUSDC} USDC for ${productName}`);
+
+          return `The merchant agent responded! They're selling ${productName} for ${priceUSDC} USDC.
 
 **Payment Details:**
-- Product: ${product}
-- Price: ${priceUSDC} USDC (${price} atomic units)
-- Network: Base Sepolia
-- Payment Token: USDC
+- Product: ${productName}
+- Price: ${priceUSDC} USDC (${price.toString()} atomic units)
+- Network: ${paymentOption.network}
+- Payment Token: ${paymentOption.extra?.name || 'USDC'}
 
 Would you like to proceed with this payment?`;
-  }
+        }
+      }
+    }
 
-  // Default response for non-purchase messages
-  return `I sent your message "${message}" to the merchant. However, it doesn't seem to be a purchase request. Try asking to buy something specific, like "I want to buy a banana".`;
+    // Second pass: No payment requirements found, look for regular text responses
+    logger.log('\n📝 No payment requirements found, checking for text responses...');
+    for (const event of events) {
+      if (event.content && event.content.parts) {
+        const textParts = event.content.parts
+          .filter((p: any) => p.text)
+          .map((p: any) => p.text)
+          .join('\n');
+        logger.log(`Text content: "${textParts}"`);
+        if (textParts) {
+          logger.log('✅ Returning text content from merchant');
+          return `Merchant says: ${textParts}`;
+        }
+      }
+    }
+
+    // If we got a response but no payment requirements or message, return generic success
+    return `I contacted the merchant, but received an unexpected response format. Events: ${JSON.stringify(events)}`;
+
+  } catch (error) {
+    logger.error('❌ Failed to contact merchant:', error);
+    if (error instanceof Error) {
+      if (error.message.includes('ECONNREFUSED') || error.message.includes('fetch failed')) {
+        return `❌ Cannot connect to the merchant server at ${MERCHANT_AGENT_URL}. Please make sure:\n1. The merchant server is running (npm start in merchant-agent directory)\n2. The server is accessible at ${MERCHANT_AGENT_URL}\n\nError: ${error.message}`;
+      }
+      return `Failed to contact merchant: ${error.message}`;
+    }
+    return `Failed to contact merchant: ${String(error)}`;
+  }
 }
 
 /**
@@ -229,8 +235,64 @@ async function confirmPayment(
       return `Payment transfer failed: ${transferResult.error}`;
     }
 
-    const amountUSDC = (Number(amount) / 1_000_000).toFixed(6);
-    const result = `✅ Payment completed successfully!
+    logger.log(`✅ Transfer successful: ${transferResult.txHash}`);
+
+    // Step 3: Send payment proof back to merchant server
+    logger.log('\n📤 Sending payment proof to merchant...');
+
+    try {
+      const paymentResponse = await fetch(MERCHANT_AGENT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: `I want to buy ${productName}`, // Original request
+          taskId: state.pendingPayment.taskId,
+          contextId: state.pendingPayment.contextId,
+          message: {
+            messageId: `msg-${Date.now()}`,
+            role: 'user',
+            parts: [{ kind: 'text', text: `I want to buy ${productName}` }],
+            metadata: {
+              x402: {
+                paymentStatus: 'payment-submitted',
+                paymentPayload: signedPayload,
+              },
+            },
+          },
+        }),
+      });
+
+      if (!paymentResponse.ok) {
+        logger.error(`❌ Failed to send payment to merchant: ${paymentResponse.status}`);
+        return `⚠️ Payment was sent on-chain but merchant server returned error: ${paymentResponse.status}. Transaction: ${transferResult.txHash}`;
+      }
+
+      const paymentData = await paymentResponse.json() as any;
+      logger.log('✅ Merchant received payment:', JSON.stringify(paymentData, null, 2));
+
+      // Check for confirmation in the response
+      let merchantConfirmation = '';
+      if (paymentData.events && paymentData.events.length > 0) {
+        for (const event of paymentData.events) {
+          if (event.status?.message) {
+            const msg = event.status.message;
+            if (msg.parts && Array.isArray(msg.parts)) {
+              const textParts = msg.parts
+                .filter((p: any) => p.kind === 'text')
+                .map((p: any) => p.text)
+                .join('\n');
+              if (textParts) {
+                merchantConfirmation = `\n\n**Merchant Response:**\n${textParts}`;
+              }
+            }
+          }
+        }
+      }
+
+      const amountUSDC = (Number(amount) / 1_000_000).toFixed(6);
+      const result = `✅ Payment completed successfully!
 
 **Transaction Details:**
 - Product: ${productName}
@@ -238,13 +300,17 @@ async function confirmPayment(
 - Token: ${tokenAddress}
 - Merchant: ${merchantAddress}
 - Transaction: ${transferResult.txHash}
+- View on BaseScan: https://sepolia.basescan.org/tx/${transferResult.txHash}${merchantConfirmation}`;
 
-You can view the transaction on BaseScan: https://sepolia.basescan.org/tx/${transferResult.txHash}`;
+      // Clear pending payment
+      state.pendingPayment = undefined;
 
-    // Clear pending payment
-    state.pendingPayment = undefined;
+      return result;
 
-    return result;
+    } catch (error) {
+      logger.error('❌ Failed to notify merchant:', error);
+      return `⚠️ Payment was sent on-chain successfully but couldn't notify merchant: ${error instanceof Error ? error.message : String(error)}\n\nTransaction: ${transferResult.txHash}\nView on BaseScan: https://sepolia.basescan.org/tx/${transferResult.txHash}`;
+    }
 
   } catch (error) {
     logger.error('❌ Payment processing failed:', error);

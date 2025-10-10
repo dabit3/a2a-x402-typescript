@@ -50,13 +50,11 @@ console.log(`💼 Merchant Configuration:
 // --- Helper Functions ---
 
 /**
- * Generates a deterministic price for a product based on its name
+ * Returns a fixed price of 1 USDC for all products
  */
 function getProductPrice(productName: string): string {
-  const hash = createHash('sha256').update(productName.toLowerCase()).digest();
-  const hashNumber = BigInt('0x' + hash.toString('hex'));
-  const price = Number(hashNumber % 99900001n + 100000n);
-  return price.toString();
+  // 1 USDC = 1,000,000 atomic units (USDC has 6 decimals)
+  return "1000000";
 }
 
 // --- Tool Functions ---

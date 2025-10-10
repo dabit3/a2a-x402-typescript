@@ -20,7 +20,7 @@
  */
 
 import { createServer } from 'http';
-import { merchantAgent } from './agent';
+import { wrappedMerchantAgent, lastPaymentException, clearLastPaymentException } from './wrapped-agent';
 import { MerchantServerExecutor } from './src/executor/MerchantServerExecutor';
 import {
   x402PaymentRequiredException,
@@ -28,38 +28,45 @@ import {
   x402Utils,
   TaskState,
 } from 'a2a-x402';
-import { InvocationContext } from 'adk-typescript/agents';
-import { Session } from 'adk-typescript/sessions';
-import { Content } from 'adk-typescript/models';
+const path = require('path');
+const { Runner } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/runners'));
+const { InMemorySessionService } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/sessions/InMemorySessionService'));
+const { InMemoryArtifactService } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/artifacts/InMemoryArtifactService'));
+const { InMemoryMemoryService } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/memory/InMemoryMemoryService'));
 
 const PORT = process.env.PORT || 10000;
 const utils = new x402Utils();
 
-// Simple AgentExecutor wrapper that runs the ADK agent
-class AgentExecutorAdapter {
-  constructor(private agent: any) {}
+// Create ADK services for proper session management
+const sessionService = new InMemorySessionService();
+const artifactService = new InMemoryArtifactService();
+const memoryService = new InMemoryMemoryService();
 
+// Create ADK Runner with wrapped agent
+const runner = new Runner({
+  appName: 'x402_merchant_agent',
+  agent: wrappedMerchantAgent,
+  sessionService,
+  artifactService,
+  memoryService,
+});
+
+// AgentExecutor adapter that uses ADK Runner
+class AgentExecutorAdapter {
   async execute(context: any, eventQueue: any): Promise<void> {
     try {
-      // Create proper ADK InvocationContext
-      const session = new Session({ id: context.contextId });
-      const userContent: Content = {
-        role: 'user',
-        parts: context.message.parts,
-      };
+      console.log('\n=== AgentExecutorAdapter Debug ===');
+      console.log('Context ID:', context.contextId);
+      console.log('Message:', JSON.stringify(context.message, null, 2));
 
-      const invocationContext = new InvocationContext({
-        invocationId: context.taskId,
-        session,
-        agent: this.agent,
-        userContent,
-      });
+      clearLastPaymentException(); // Clear any previous exception
 
-      // Set user content on the agent
-      this.agent.setUserContent(userContent, invocationContext);
-
-      // Run the agent and collect events
-      for await (const event of this.agent.runAsync(invocationContext)) {
+      // Use ADK Runner to execute the agent with proper session management
+      for await (const event of runner.runAsync({
+        userId: 'client-user',
+        sessionId: context.contextId,
+        newMessage: context.message,
+      })) {
         await eventQueue.enqueueEvent({
           id: context.taskId,
           status: {
@@ -67,6 +74,12 @@ class AgentExecutorAdapter {
             message: event,
           },
         });
+      }
+
+      // After execution, check if a payment exception was caught
+      if (lastPaymentException) {
+        console.log('💳 Found payment exception after execution, re-throwing...');
+        throw lastPaymentException;
       }
     } catch (error) {
       // If it's a payment exception, re-throw so executor can catch it
@@ -81,7 +94,7 @@ class AgentExecutorAdapter {
 }
 
 // Wrap agent with x402 payment executor
-const agentAdapter = new AgentExecutorAdapter(merchantAgent);
+const agentAdapter = new AgentExecutorAdapter();
 const paymentExecutor = new MerchantServerExecutor(agentAdapter as any);
 
 console.log('🚀 Starting x402 Merchant Agent Server...');
@@ -126,14 +139,69 @@ const server = createServer(async (req, res) => {
     try {
       const request = JSON.parse(body);
 
-      // Create mock context and event queue
+      console.log('\n=== Received request ===');
+      console.log('URL:', req.url);
+      console.log('Request body:', JSON.stringify(request, null, 2));
+
+      // Support ADK /run endpoint format
+      if (req.url === '/run' && request.newMessage) {
+        // ADK format: { appName, userId, sessionId, newMessage: { role, parts } }
+        const context: any = {
+          taskId: `task-${Date.now()}`,
+          contextId: request.sessionId || `context-${Date.now()}`,
+          message: request.newMessage,
+        };
+
+        const events: any[] = [];
+        const eventQueue = {
+          enqueueEvent: async (event: any) => {
+            console.log('Event enqueued:', JSON.stringify(event, null, 2));
+            events.push(event);
+          },
+        };
+
+        // Execute through payment executor
+        await paymentExecutor.execute(context, eventQueue);
+
+        // Transform events for ADK response format
+        const adkEvents = events.map(e => {
+          // Check for payment requirements in the message metadata (x402 format)
+          const paymentReqs = e.status?.message?.metadata?.['x402.payment.required'];
+          if (e.status?.state === 'input-required' && paymentReqs) {
+            // Transform x402 payment exception to ADK error event format
+            console.log('💳 Transforming payment requirement to ADK format');
+            return {
+              invocationId: context.taskId,
+              errorCode: 'x402_payment_required',
+              errorData: {
+                paymentRequirements: paymentReqs,
+              },
+              content: {
+                role: 'model',
+                parts: [{
+                  text: paymentReqs.error || 'Payment required'
+                }],
+              },
+            };
+          }
+          // Regular event - transform to ADK format
+          return e.status?.message || e;
+        });
+
+        // Return ADK-compatible response (array of events)
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(adkEvents));
+        return;
+      }
+
+      // Legacy format support
       const context: any = {
         taskId: request.taskId || `task-${Date.now()}`,
         contextId: request.contextId || `context-${Date.now()}`,
         message: request.message || {
           messageId: `msg-${Date.now()}`,
           role: 'user',
-          parts: [{ kind: 'text', text: request.text || request.input || '' }],
+          parts: [{ text: request.text || request.input || '' }],
         },
       };
 
@@ -147,12 +215,19 @@ const server = createServer(async (req, res) => {
       // Execute through payment executor
       await paymentExecutor.execute(context, eventQueue);
 
+      // Check if any events contain payment requirements
+      const hasPaymentRequired = events.some(e =>
+        e.status?.state === 'payment-required' ||
+        e.status?.paymentRequirements
+      );
+
       // Return response
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         success: true,
         events,
         taskId: context.taskId,
+        paymentRequired: hasPaymentRequired,
       }));
 
     } catch (error) {

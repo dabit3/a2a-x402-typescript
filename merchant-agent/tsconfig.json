@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": ".",
     "rootDir": ".",
     "module": "node16",
     "target": "ES2020",
@@ -20,11 +20,11 @@
   "include": [
     "src/**/*",
     "agent.ts",
-    "server.ts"
+    "server.ts",
+    "x402_merchant_agent.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
     "**/*.backup.ts"
   ],
   "ts-node": {

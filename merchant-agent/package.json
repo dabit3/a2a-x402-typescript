@@ -1,19 +1,20 @@
 {
-  "name": "x402-merchant-agent",
+  "name": "x402_merchant_agent",
   "version": "2.0.0",
   "description": "Production-ready x402 Payment-Enabled Merchant Agent",
-  "main": "agent.ts",
+  "main": "x402_merchant_agent.ts",
   "scripts": {
     "dev": "adk api_server --port 10000",
-    "start": "ts-node -r dotenv/config server.ts",
-    "start:prod": "node dist/server.js",
+    "start": "adk api_server --port 10000",
+    "start:custom": "ts-node -r dotenv/config server.ts",
+    "start:prod": "node server.js",
     "cli": "adk run .",
     "web": "adk web . --port 10000",
     "dev:watch": "nodemon --watch src --exec 'npm run dev'",
     "build": "tsc --project tsconfig.json",
     "test:payment": "ts-node -r dotenv/config src/test-payment-flow.ts",
     "test:payment:watch": "nodemon --watch src --exec 'npm run test:payment'",
-    "clean": "rm -rf dist",
+    "clean": "rm -f *.js *.js.map src/**/*.js src/**/*.js.map",
     "prebuild": "npm run clean"
   },
   "dependencies": {
