@@ -124,31 +124,45 @@ The custom server is designed to:
 
 ### Deployment Options
 
-#### Docker
+#### Docker (Recommended)
 
-Create a `Dockerfile`:
+The merchant agent includes complete Docker support for easy deployment.
 
-```dockerfile
-FROM node:20-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci --production
-
-COPY dist ./dist
-COPY .env .env
-
-EXPOSE 10000
-
-CMD ["node", "dist/server.js"]
-```
-
-Build and run:
+**Quick Start:**
 ```bash
-docker build -t merchant-agent .
-docker run -p 10000:10000 --env-file .env merchant-agent
+# 1. Set up environment
+cp .env.example .env
+# Edit .env with your GOOGLE_API_KEY
+
+# 2. Build and run with Docker Compose
+docker-compose up -d
+
+# 3. View logs
+docker-compose logs -f
+
+# 4. Stop
+docker-compose down
 ```
+
+**Or use the quick-start script:**
+```bash
+./docker-quickstart.sh
+```
+
+**Manual Docker build and run:**
+```bash
+# Build
+docker build -t x402-merchant-agent:latest .
+
+# Run
+docker run -d \
+  --name x402-merchant-agent \
+  -p 10000:10000 \
+  --env-file .env \
+  x402-merchant-agent:latest
+```
+
+For detailed Docker deployment instructions, see **[DOCKER.md](./DOCKER.md)**
 
 #### Cloud Platforms
 

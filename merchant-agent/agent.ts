@@ -22,7 +22,6 @@
  */
 
 import { LlmAgent as Agent } from 'adk-typescript/agents';
-import { ToolContext } from 'adk-typescript/tools';
 import { createHash } from 'crypto';
 import {
   x402PaymentRequiredException,
@@ -61,7 +60,7 @@ function getProductPrice(productName: string): string {
  */
 async function getProductDetailsAndRequestPayment(
   params: Record<string, any>,
-  context?: ToolContext
+  context?: any
 ): Promise<void> {
   const productName = params.productName || params.product_name || params;
 
@@ -114,7 +113,7 @@ async function getProductDetailsAndRequestPayment(
  */
 async function checkOrderStatus(
   params: Record<string, any>,
-  context?: ToolContext
+  context?: any
 ): Promise<{ status: string; message: string }> {
   console.log('\n📦 Checking Order Status...');
 

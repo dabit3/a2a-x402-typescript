@@ -91,8 +91,20 @@ console.log(`🌐 Using default facilitator (https://x402.org/facilitator)`);
 const server = createServer(async (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Health check endpoint
+  if (req.method === 'GET' && req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      status: 'ok',
+      service: 'x402-merchant-agent',
+      timestamp: Date.now(),
+      uptime: process.uptime(),
+    }));
+    return;
+  }
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);

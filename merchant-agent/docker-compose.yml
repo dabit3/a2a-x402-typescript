@@ -1,0 +1,40 @@
+services:
+  merchant-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: x402-merchant-agent
+    ports:
+      - "${PORT:-10000}:10000"
+    environment:
+      # Server Configuration
+      - NODE_ENV=production
+      - PORT=10000
+
+      # Google API Key for Gemini model (REQUIRED)
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+
+      # Merchant Configuration
+      - MERCHANT_WALLET_ADDRESS=${MERCHANT_WALLET_ADDRESS:-0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B}
+      - PAYMENT_NETWORK=${PAYMENT_NETWORK:-base-sepolia}
+      - USDC_CONTRACT=${USDC_CONTRACT:-0x036CbD53842c5426634e7929541eC2318f3dCF7e}
+
+      # Facilitator Configuration
+      - FACILITATOR_MODE=${FACILITATOR_MODE:-mock}
+      - MERCHANT_PRIVATE_KEY=${MERCHANT_PRIVATE_KEY}
+      - BASE_SEPOLIA_RPC_URL=${BASE_SEPOLIA_RPC_URL}
+      - FACILITATOR_URL=${FACILITATOR_URL:-https://x402.org/facilitator}
+      - FACILITATOR_API_KEY=${FACILITATOR_API_KEY}
+
+      # Debug Configuration
+      - X402_DEBUG=${X402_DEBUG:-false}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:10000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    # Optionally mount a local .env file
+    # env_file:
+    #   - .env
