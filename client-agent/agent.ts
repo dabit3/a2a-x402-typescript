@@ -93,18 +93,43 @@ Examples:
     const jsonText = jsonMatch ? jsonMatch[0] : text;
 
     const parsed = JSON.parse(jsonText);
+    logger.log(`✅ LLM parsed message: isPurchase=${parsed.isPurchase}, product=${parsed.product}`);
     return {
       isPurchase: parsed.isPurchase === true,
       product: parsed.product || undefined,
     };
   } catch (error) {
-    logger.error('Failed to parse user message with LLM:', error);
-    // Fallback to simple regex if LLM fails
+    logger.error('⚠️  LLM parsing failed, using fallback regex:', error);
+    // Fallback to enhanced regex that can extract any product name
     const lowerMessage = message.toLowerCase();
-    const buyMatch = lowerMessage.match(/(?:buy|purchase|get|want)[\s\w]*?(banana|apple|orange|coffee|book|laptop|phone)/i);
+
+    // Try to match purchase intent and extract product name
+    // Patterns like: "buy [product]", "want to buy [product]", "purchase [product]"
+    const buyPatterns = [
+      /(?:want to |would like to |can i |please )?(?:buy|purchase|get)(?: an?| the| some)?\s+(?:["']([^"']+)["']|(\S+(?:\s+\S+)*))/i,
+      /(?:how much|price|cost)(?: is| for)(?: an?| the| some)?\s+(?:["']([^"']+)["']|(\S+(?:\s+\S+)*))/i,
+    ];
+
+    for (const pattern of buyPatterns) {
+      const match = message.match(pattern);
+      if (match) {
+        // Extract from either quoted string (group 1) or unquoted (group 2)
+        const product = (match[1] || match[2])?.trim();
+        if (product) {
+          logger.log(`✅ Fallback regex parsed: isPurchase=true, product=${product}`);
+          return {
+            isPurchase: true,
+            product: product,
+          };
+        }
+      }
+    }
+
+    // No match found
+    logger.log('⚠️  No purchase intent detected in message');
     return {
-      isPurchase: !!buyMatch,
-      product: buyMatch?.[1],
+      isPurchase: false,
+      product: undefined,
     };
   }
 }
@@ -143,7 +168,7 @@ async function sendMessageToMerchant(
           scheme: 'exact',
           network: 'base-sepolia',
           asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-          payTo: process.env.MERCHANT_WALLET_ADDRESS || '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+          payTo: process.env.MERCHANT_WALLET_ADDRESS,
           maxAmountRequired: price.toString(),
           maxTimeoutSeconds: 1200,
           extra: {

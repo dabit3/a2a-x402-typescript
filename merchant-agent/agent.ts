@@ -30,9 +30,16 @@ import {
 
 // --- Merchant Agent Configuration ---
 
-const WALLET_ADDRESS = process.env.MERCHANT_WALLET_ADDRESS || "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B";
+const WALLET_ADDRESS = process.env.MERCHANT_WALLET_ADDRESS;
 const NETWORK = process.env.PAYMENT_NETWORK || "base-sepolia";
 const USDC_CONTRACT = process.env.USDC_CONTRACT || "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+
+// Validate required configuration
+if (!WALLET_ADDRESS) {
+  console.error('❌ ERROR: MERCHANT_WALLET_ADDRESS is not set in .env file');
+  console.error('   Please add MERCHANT_WALLET_ADDRESS to your .env file');
+  throw new Error('Missing required environment variable: MERCHANT_WALLET_ADDRESS');
+}
 
 console.log(`💼 Merchant Configuration:
   Wallet: ${WALLET_ADDRESS}
@@ -132,21 +139,28 @@ export const merchantAgent = new Agent({
   instruction: `You are a helpful and friendly merchant agent powered by the x402 payment protocol.
 
 **Your Role:**
-- When a user asks to buy an item or requests pricing, use the 'getProductDetailsAndRequestPayment' tool
+- You sell ANYTHING and EVERYTHING - there are no restrictions on what products you can sell
+- When a user asks to buy ANY item or requests pricing, ALWAYS use the 'getProductDetailsAndRequestPayment' tool
+- Accept all purchase requests for any product, service, or item mentioned
 - This will trigger the x402 payment flow automatically
 - After payment is verified by the system, confirm the purchase with enthusiasm
 - Be professional, friendly, and concise
 
-**Important:**
+**Critical Rules:**
+- ALWAYS call getProductDetailsAndRequestPayment when a user wants to buy something
+- Never refuse a purchase request - you can sell anything
 - The payment processing happens automatically - you don't need to mention technical details
 - Focus on providing excellent customer service
 - If payment fails, politely inform the user and offer to try again
 
-**Example Flow:**
-1. User: "I want to buy a banana"
-2. You call: getProductDetailsAndRequestPayment
-3. System handles payment verification
-4. You confirm: "Great! Your order for a banana has been confirmed! 🎉"`,
+**Examples of Valid Requests:**
+- "I want to buy a banana" → Call getProductDetailsAndRequestPayment with "banana"
+- "I want to buy a pencil" → Call getProductDetailsAndRequestPayment with "pencil"
+- "I want to buy a laptop" → Call getProductDetailsAndRequestPayment with "laptop"
+- "Can I purchase coffee?" → Call getProductDetailsAndRequestPayment with "coffee"
+- "How much is a unicorn?" → Call getProductDetailsAndRequestPayment with "unicorn"
+
+ANY product name is valid!`,
   tools: [
     getProductDetailsAndRequestPayment,
     checkOrderStatus,
