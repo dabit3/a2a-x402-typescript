@@ -30,16 +30,16 @@ import {
 
 // --- Merchant Agent Configuration ---
 
-const WALLET_ADDRESS = process.env.MERCHANT_WALLET_ADDRESS;
-const NETWORK = process.env.PAYMENT_NETWORK || "base-sepolia";
-const USDC_CONTRACT = process.env.USDC_CONTRACT || "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
-
-// Validate required configuration
-if (!WALLET_ADDRESS) {
+// Validate and load required configuration
+if (!process.env.MERCHANT_WALLET_ADDRESS) {
   console.error('❌ ERROR: MERCHANT_WALLET_ADDRESS is not set in .env file');
   console.error('   Please add MERCHANT_WALLET_ADDRESS to your .env file');
   throw new Error('Missing required environment variable: MERCHANT_WALLET_ADDRESS');
 }
+
+const WALLET_ADDRESS: string = process.env.MERCHANT_WALLET_ADDRESS;
+const NETWORK = process.env.PAYMENT_NETWORK || "base-sepolia";
+const USDC_CONTRACT = process.env.USDC_CONTRACT || "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 
 console.log(`💼 Merchant Configuration:
   Wallet: ${WALLET_ADDRESS}
