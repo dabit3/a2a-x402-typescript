@@ -35,8 +35,9 @@ RUN cd /app/node_modules/adk-typescript/dist/sessions && \
 # Copy environment example file for reference (if not already copied)
 RUN cp -n .env.example . || true
 
-# Remove source files to reduce image size (keep node_modules and dist)
-RUN rm -rf src *.ts tsconfig.json
+# Remove TypeScript source files to reduce image size (keep compiled .js files)
+RUN find . -name "*.ts" -not -path "./node_modules/*" -delete && \
+    rm -f tsconfig.json
 
 # Expose port (default 10000, configurable via PORT env var)
 EXPOSE 10000
@@ -50,4 +51,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:${PORT}/health', (r) => {let data='';r.on('data',c=>data+=c);r.on('end',()=>process.exit(r.statusCode===200&&JSON.parse(data).status==='ok'?0:1))})"
 
 # Run the application
-CMD ["node", "dist/server.js"]
+CMD ["node", "server.js"]
