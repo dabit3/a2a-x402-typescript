@@ -28,11 +28,13 @@ import {
   x402Utils,
   TaskState,
 } from 'a2a-x402';
+// Import directly from the compiled files, bypassing package.json exports
+// to avoid path resolution issues in Docker
 const path = require('path');
-const { Runner } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/runners'));
-const { InMemorySessionService } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/sessions/InMemorySessionService'));
-const { InMemoryArtifactService } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/artifacts/InMemoryArtifactService'));
-const { InMemoryMemoryService } = require(path.join(__dirname, 'node_modules/adk-typescript/dist/memory/InMemoryMemoryService'));
+const { Runner } = require(path.resolve('/node_modules/adk-typescript/dist/runners'));
+const { InMemorySessionService } = require(path.resolve('/node_modules/adk-typescript/dist/sessions'));
+const { InMemoryArtifactService } = require(path.resolve('/node_modules/adk-typescript/dist/artifacts'));
+const { InMemoryMemoryService } = require(path.resolve('/node_modules/adk-typescript/dist/memory'));
 
 const PORT = process.env.PORT || 10000;
 const utils = new x402Utils();

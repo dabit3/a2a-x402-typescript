@@ -46,7 +46,8 @@ function processPriceToAtomicAmount(
     base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     "base-sepolia": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
     ethereum: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    polygon: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    polygon: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    "polygon-amoy": "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
   };
 
   if (typeof price === "string") {

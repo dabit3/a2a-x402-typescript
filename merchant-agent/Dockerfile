@@ -3,7 +3,7 @@
 FROM node:20-alpine
 
 # Set working directory
-WORKDIR /app
+WORKDIR /
 
 # Copy package files
 COPY package*.json ./
@@ -19,7 +19,7 @@ RUN npm run build
 
 # Fix case-sensitivity issues in adk-typescript package
 # The package has incorrect casing in requires that works on macOS but fails on Linux
-RUN cd /app/node_modules/adk-typescript/dist/sessions && \
+RUN cd /node_modules/adk-typescript/dist/sessions && \
     ln -s state.js State.js 2>/dev/null || true && \
     ln -s state.d.ts State.d.ts 2>/dev/null || true && \
     ln -s baseSessionService.js BaseSessionService.js 2>/dev/null || true && \
@@ -28,7 +28,7 @@ RUN cd /app/node_modules/adk-typescript/dist/sessions && \
     ln -s inMemorySessionService.d.ts InMemorySessionService.d.ts 2>/dev/null || true && \
     ln -s databaseSessionService.js DatabaseSessionService.js 2>/dev/null || true && \
     ln -s databaseSessionService.d.ts DatabaseSessionService.d.ts 2>/dev/null || true && \
-    cd /app/node_modules/adk-typescript/dist/tools && \
+    cd /node_modules/adk-typescript/dist/tools && \
     ln -s toolContext.js ToolContext.js 2>/dev/null || true && \
     ln -s toolContext.d.ts ToolContext.d.ts 2>/dev/null || true
 
