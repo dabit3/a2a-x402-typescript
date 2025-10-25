@@ -331,9 +331,11 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     errorReason: string,
     eventQueue: EventQueue
   ): Promise<void> {
+    const lastRequirements =
+      x402ServerExecutor._paymentRequirementsStore.get(task.id)?.[0];
     const failureResponse: SettleResponse = {
       success: false,
-      network: "base",
+      network: lastRequirements?.network || "unknown",
       errorReason,
     };
 

@@ -93,7 +93,7 @@ export class x402ClientExecutor extends x402BaseExecutor {
       const error = e as Error;
       const failureResponse: SettleResponse = {
         success: false,
-        network: "base",
+        network: paymentRequired.accepts[0]?.network || "unknown",
         errorReason: `Payment failed: ${error.message}`,
       };
       this.utils.recordPaymentFailure(

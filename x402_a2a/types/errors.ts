@@ -15,7 +15,7 @@
  * Protocol error types and error code mapping
  */
 
-import { PaymentRequirements } from "./state";
+import { PaymentRequirements, SupportedNetworks } from "./state";
 import { Price, TokenAmount } from "./config";
 
 export class x402Error extends Error {
@@ -57,7 +57,7 @@ export interface PaymentRequiredExceptionOptions {
   price: Price;
   payToAddress: string;
   resource: string;
-  network?: string;
+  network?: SupportedNetworks;
   description?: string;
   message?: string;
 }
@@ -98,7 +98,7 @@ export class x402PaymentRequiredException extends x402Error {
       price: options.price,
       payToAddress: options.payToAddress,
       resource: options.resource,
-      network: options.network || "base",
+      network: options.network,
       description: options.description || "Payment required for this service",
     });
 
