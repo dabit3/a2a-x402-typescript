@@ -22,6 +22,7 @@ import {
   PaymentPayload,
   ExactPaymentPayload,
   EIP3009Authorization,
+  SupportedNetworks,
 } from "../types/state";
 
 /**
@@ -115,7 +116,7 @@ export async function processPayment(
   const domain: TypedDataDomain = {
     name: requirements.extra?.name || "USDC",
     version: requirements.extra?.version || "2",
-    chainId: getChainId(requirements.network),
+    chainId: getChainId(requirements.network as SupportedNetworks),
     verifyingContract: requirements.asset,
   };
 
@@ -159,13 +160,20 @@ export async function processPayment(
 /**
  * Get chain ID for network
  */
-function getChainId(network: string): number {
+function getChainId(network: SupportedNetworks): number {
   const chainIds: Record<string, number> = {
-    "base": 8453,
+    base: 8453,
     "base-sepolia": 84532,
-    "ethereum": 1,
-    "polygon": 137,
+    ethereum: 1,
+    polygon: 137,
     "polygon-amoy": 80002,
   };
-  return chainIds[network] || 84532;
+
+  if (!(network in chainIds)) {
+    throw new Error(
+      `Unsupported network "${network}". Supported networks: ${Object.keys(chainIds).join(", ")}`
+    );
+  }
+
+  return chainIds[network];
 }

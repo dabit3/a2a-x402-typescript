@@ -41,7 +41,7 @@ export type SupportedNetworks = "base" | "base-sepolia" | "ethereum" | "polygon"
 export interface EIP712Domain {
   name: string;
   version: string;
-  chainId?: string;
+  chainId?: number;
   verifyingContract?: string;
 }
 

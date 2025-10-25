@@ -19,7 +19,7 @@ import {
   x402PaymentRequiredException,
   PaymentRequiredExceptionOptions,
 } from "../types/errors";
-import { PaymentRequirements } from "../types/state";
+import { PaymentRequirements, SupportedNetworks } from "../types/state";
 import { Price, TokenAmount } from "../types/config";
 import { createPaymentRequirements } from "./merchant";
 
@@ -82,7 +82,7 @@ export async function createTieredPaymentOptions(
   payToAddress: string,
   resource: string,
   tiers?: TierDefinition[],
-  network: string = "base"
+  network: SupportedNetworks = "base"
 ): Promise<PaymentRequirements[]> {
   const defaultTiers: TierDefinition[] = [
     { multiplier: 1, suffix: "basic", description: "Basic service" },

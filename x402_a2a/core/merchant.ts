@@ -25,7 +25,7 @@ interface CreatePaymentRequirementsOptions {
   price: Price;
   payToAddress: string;
   resource: string;
-  network?: string;
+  network?: SupportedNetworks;
   description?: string;
   mimeType?: string;
   scheme?: string;
@@ -34,15 +34,33 @@ interface CreatePaymentRequirementsOptions {
   extra?: Record<string, any>;
 }
 
+const SUPPORTED_NETWORKS: readonly SupportedNetworks[] = [
+  "base",
+  "base-sepolia",
+  "ethereum",
+  "polygon",
+  "polygon-amoy",
+];
+
+function assertSupportedNetwork(
+  network: string
+): asserts network is SupportedNetworks {
+  if (!SUPPORTED_NETWORKS.includes(network as SupportedNetworks)) {
+    throw new Error(
+      `Unsupported network "${network}". Supported networks: ${SUPPORTED_NETWORKS.join(", ")}`
+    );
+  }
+}
+
 /**
  * Process price to atomic amount (similar to Python's process_price_to_atomic_amount)
  */
 function processPriceToAtomicAmount(
   price: Price,
-  network: string
+  network: SupportedNetworks
 ): { maxAmountRequired: string; assetAddress: string; eip712Domain?: any } {
   // Default USDC addresses by network
-  const USDC_ADDRESSES: Record<string, string> = {
+  const USDC_ADDRESSES: Record<SupportedNetworks, string> = {
     base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     "base-sepolia": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
     ethereum: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -56,8 +74,7 @@ function processPriceToAtomicAmount(
     const priceFloat = parseFloat(priceStr);
     // Convert to atomic units (USDC has 6 decimals)
     const atomicAmount = Math.floor(priceFloat * 1_000_000).toString();
-    const assetAddress =
-      USDC_ADDRESSES[network] || USDC_ADDRESSES["base-sepolia"];
+    const assetAddress = USDC_ADDRESSES[network];
 
     return {
       maxAmountRequired: atomicAmount,
@@ -70,8 +87,7 @@ function processPriceToAtomicAmount(
   } else if (typeof price === "number") {
     // Numeric value (treat as USD)
     const atomicAmount = Math.floor(price * 1_000_000).toString();
-    const assetAddress =
-      USDC_ADDRESSES[network] || USDC_ADDRESSES["base-sepolia"];
+    const assetAddress = USDC_ADDRESSES[network];
 
     return {
       maxAmountRequired: atomicAmount,
@@ -109,12 +125,14 @@ export async function createPaymentRequirements(
     extra,
   } = options;
 
+  assertSupportedNetwork(network);
+
   const { maxAmountRequired, assetAddress, eip712Domain } =
     processPriceToAtomicAmount(price, network);
 
   return {
     scheme,
-    network: network as SupportedNetworks,
+    network,
     asset: assetAddress,
     payTo: payToAddress,
     maxAmountRequired,
