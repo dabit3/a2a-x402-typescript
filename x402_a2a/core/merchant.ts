@@ -15,11 +15,8 @@
  * Payment requirements creation functions
  */
 
-import {
-  PaymentRequirements,
-  SupportedNetworks,
-} from "../types/state";
-import { Price, TokenAmount } from "../types/config";
+import { PaymentRequirements, SupportedNetworks } from '../types/state';
+import { Price, TokenAmount } from '../types/config';
 
 interface CreatePaymentRequirementsOptions {
   price: Price;
@@ -35,11 +32,11 @@ interface CreatePaymentRequirementsOptions {
 }
 
 const SUPPORTED_NETWORKS: readonly SupportedNetworks[] = [
-  "base",
-  "base-sepolia",
-  "ethereum",
-  "polygon",
-  "polygon-amoy",
+  'base',
+  'base-sepolia',
+  'ethereum',
+  'polygon',
+  'polygon-amoy',
 ];
 
 function assertSupportedNetwork(
@@ -47,7 +44,7 @@ function assertSupportedNetwork(
 ): asserts network is SupportedNetworks {
   if (!SUPPORTED_NETWORKS.includes(network as SupportedNetworks)) {
     throw new Error(
-      `Unsupported network "${network}". Supported networks: ${SUPPORTED_NETWORKS.join(", ")}`
+      `Unsupported network "${network}". Supported networks: ${SUPPORTED_NETWORKS.join(', ')}`
     );
   }
 }
@@ -61,16 +58,16 @@ function processPriceToAtomicAmount(
 ): { maxAmountRequired: string; assetAddress: string; eip712Domain?: any } {
   // Default USDC addresses by network
   const USDC_ADDRESSES: Record<SupportedNetworks, string> = {
-    base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-    "base-sepolia": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-    ethereum: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    polygon: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-    "polygon-amoy": "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
+    base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    'base-sepolia': '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+    ethereum: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    polygon: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+    'polygon-amoy': '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582',
   };
 
-  if (typeof price === "string") {
+  if (typeof price === 'string') {
     // Money format (e.g., "$1.00" or "1.00")
-    const priceStr = price.startsWith("$") ? price.slice(1) : price;
+    const priceStr = price.startsWith('$') ? price.slice(1) : price;
     const priceFloat = parseFloat(priceStr);
     // Convert to atomic units (USDC has 6 decimals)
     const atomicAmount = Math.floor(priceFloat * 1_000_000).toString();
@@ -80,11 +77,11 @@ function processPriceToAtomicAmount(
       maxAmountRequired: atomicAmount,
       assetAddress,
       eip712Domain: {
-        name: "USDC",
-        version: "2",
+        name: 'USDC',
+        version: '2',
       },
     };
-  } else if (typeof price === "number") {
+  } else if (typeof price === 'number') {
     // Numeric value (treat as USD)
     const atomicAmount = Math.floor(price * 1_000_000).toString();
     const assetAddress = USDC_ADDRESSES[network];
@@ -93,8 +90,8 @@ function processPriceToAtomicAmount(
       maxAmountRequired: atomicAmount,
       assetAddress,
       eip712Domain: {
-        name: "USDC",
-        version: "2",
+        name: 'USDC',
+        version: '2',
       },
     };
   } else {
@@ -116,10 +113,10 @@ export async function createPaymentRequirements(
     price,
     payToAddress,
     resource,
-    network = "base",
-    description = "",
-    mimeType = "application/json",
-    scheme = "exact",
+    network = 'base',
+    description = '',
+    mimeType = 'application/json',
+    scheme = 'exact',
     maxTimeoutSeconds = 600,
     outputSchema,
     extra,

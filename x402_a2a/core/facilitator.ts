@@ -39,7 +39,9 @@ export class DefaultFacilitatorClient implements FacilitatorClient {
 
     // Validate and normalize URL
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      throw new Error(`Invalid URL ${url}, must start with http:// or https://`);
+      throw new Error(
+        `Invalid URL ${url}, must start with http:// or https://`
+      );
     }
 
     this.config = {
@@ -57,7 +59,9 @@ export class DefaultFacilitatorClient implements FacilitatorClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
+          ...(this.config.apiKey && {
+            Authorization: `Bearer ${this.config.apiKey}`,
+          }),
         },
         body: JSON.stringify({
           x402Version: payload.x402Version,
@@ -73,7 +77,7 @@ export class DefaultFacilitatorClient implements FacilitatorClient {
         };
       }
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       return {
         isValid: data.isValid || data.is_valid || false,
         payer: data.payer,
@@ -96,7 +100,9 @@ export class DefaultFacilitatorClient implements FacilitatorClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
+          ...(this.config.apiKey && {
+            Authorization: `Bearer ${this.config.apiKey}`,
+          }),
         },
         body: JSON.stringify({
           x402Version: payload.x402Version,
@@ -113,7 +119,7 @@ export class DefaultFacilitatorClient implements FacilitatorClient {
         };
       }
 
-      const data = await response.json() as any;
+      const data = (await response.json()) as any;
       return {
         success: data.success || false,
         transaction: data.transaction || data.transactionHash,

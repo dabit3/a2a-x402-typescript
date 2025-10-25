@@ -15,12 +15,12 @@
  * x402 Extension Declaration
  */
 
-import { X402_EXTENSION_URI } from "./types/config";
+import { X402_EXTENSION_URI } from './types/config';
 
 export { X402_EXTENSION_URI };
 
 export const X402_EXTENSION = {
   uri: X402_EXTENSION_URI,
-  version: "0.1",
-  description: "x402 Payment Protocol Extension for A2A",
+  version: '0.1',
+  description: 'x402 Payment Protocol Extension for A2A',
 };

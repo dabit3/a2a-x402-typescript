@@ -15,7 +15,7 @@
  * State management utilities for x402 protocol
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from 'crypto';
 import {
   Task,
   Message,
@@ -27,8 +27,8 @@ import {
   TaskState,
   TaskStatus,
   TextPart,
-} from "../types/state";
-import { logger } from "./logger";
+} from '../types/state';
+import { logger } from './logger';
 
 /**
  * Parse payment payload from metadata
@@ -43,15 +43,15 @@ function parsePaymentPayload(payloadData: any): PaymentPayload {
 export function createPaymentSubmissionMessage(
   taskId: string,
   paymentPayload: PaymentPayload,
-  text: string = "Payment authorization provided",
+  text: string = 'Payment authorization provided',
   messageId?: string
 ): Message {
   const msgId = messageId || randomUUID();
   return {
     messageId: msgId,
     taskId,
-    role: "user",
-    parts: [{ kind: "text", text }],
+    role: 'user',
+    parts: [{ kind: 'text', text }],
     metadata: {
       [x402Metadata.STATUS_KEY]: PaymentStatus.PAYMENT_SUBMITTED,
       [x402Metadata.PAYLOAD_KEY]: paymentPayload,
@@ -140,7 +140,7 @@ export class x402Utils {
       try {
         return parsePaymentPayload(payloadData);
       } catch (error) {
-        logger.error("Failed to parse payment payload:", error);
+        logger.error('Failed to parse payment payload:', error);
         return null;
       }
     }
@@ -173,8 +173,10 @@ export class x402Utils {
     if (!task.status.message) {
       task.status.message = {
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment is required for this service." }],
+        role: 'agent',
+        parts: [
+          { kind: 'text', text: 'Payment is required for this service.' },
+        ],
         metadata: {},
       };
     }
@@ -196,8 +198,8 @@ export class x402Utils {
     if (!task.status.message) {
       task.status.message = {
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment verification recorded." }],
+        role: 'agent',
+        parts: [{ kind: 'text', text: 'Payment verification recorded.' }],
         metadata: {},
       };
     }
@@ -218,8 +220,8 @@ export class x402Utils {
     if (!task.status.message) {
       task.status.message = {
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment completed successfully." }],
+        role: 'agent',
+        parts: [{ kind: 'text', text: 'Payment completed successfully.' }],
         metadata: {},
       };
     }
@@ -261,8 +263,8 @@ export class x402Utils {
     if (!task.status.message) {
       task.status.message = {
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment failed." }],
+        role: 'agent',
+        parts: [{ kind: 'text', text: 'Payment failed.' }],
         metadata: {},
       };
     }
@@ -327,8 +329,8 @@ export class x402Utils {
     if (!task.status.message) {
       task.status.message = {
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment authorization provided" }],
+        role: 'agent',
+        parts: [{ kind: 'text', text: 'Payment authorization provided' }],
         metadata: {},
       };
     }
