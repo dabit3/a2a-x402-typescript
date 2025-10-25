@@ -21,12 +21,13 @@
 import { LlmAgent as Agent } from 'adk-typescript/agents';
 import { ToolContext } from 'adk-typescript/tools';
 import { LocalWallet } from './src/wallet/Wallet';
-import { x402Utils, PaymentStatus } from 'a2a-x402';
+import { x402Utils } from 'a2a-x402';
 import { logger } from './src/logger';
 
 // --- Client Agent Configuration ---
 
 const MERCHANT_AGENT_URL = process.env.MERCHANT_AGENT_URL || 'http://localhost:10000';
+const EBOOK_DOWNLOAD_URL = 'https://gist.github.com/dabit3/fd7f4d24ebdda092f6cbbb6a5e57e487';
 
 logger.log(`🤖 Client Agent Configuration:
   Merchant URL: ${MERCHANT_AGENT_URL}
@@ -34,8 +35,6 @@ logger.log(`🤖 Client Agent Configuration:
 
 // Initialize wallet
 const wallet = new LocalWallet();
-const x402 = new x402Utils();
-
 // State management
 interface AgentState {
   sessionId?: string;
@@ -49,6 +48,38 @@ interface AgentState {
 }
 
 const state: AgentState = {};
+
+function extractTextFromMessage(message: any): string {
+  if (!message) {
+    return '';
+  }
+
+  const collected: string[] = [];
+
+  const collectParts = (parts: any[]) => {
+    for (const part of parts) {
+      if (!part) continue;
+      if (typeof part === 'string') {
+        collected.push(part);
+      } else if (typeof part.text === 'string') {
+        collected.push(part.text);
+      } else if (typeof part.content === 'string') {
+        collected.push(part.content);
+      }
+    }
+  };
+
+  if (Array.isArray(message.parts)) {
+    collectParts(message.parts);
+  }
+
+  const contentParts = message.content?.parts;
+  if (Array.isArray(contentParts)) {
+    collectParts(contentParts);
+  }
+
+  return collected.join('\n').trim();
+}
 
 // Helper to ensure we have a session
 async function ensureSession(): Promise<string> {
@@ -272,24 +303,54 @@ async function confirmPayment(
       const paymentData = await paymentResponse.json() as any;
       logger.log('✅ Merchant received payment:', JSON.stringify(paymentData, null, 2));
 
-      // Check for confirmation in the response
+      // Collect the richest text response from the merchant (should include the ebook markdown)
       let merchantConfirmation = '';
       if (paymentData.events && paymentData.events.length > 0) {
+        let downloadLine = '';
+        let fallbackText = '';
+
         for (const event of paymentData.events) {
-          if (event.status?.message) {
-            const msg = event.status.message;
-            if (msg.parts && Array.isArray(msg.parts)) {
-              const textParts = msg.parts
-                .filter((p: any) => p.kind === 'text')
-                .map((p: any) => p.text)
-                .join('\n');
-              if (textParts) {
-                merchantConfirmation = `\n\n**Merchant Response:**\n${textParts}`;
-              }
-            }
+          const message = event.status?.message;
+          if (!message) {
+            continue;
+          }
+
+          const statusValue = message.metadata?.[x402Utils.STATUS_KEY];
+          const textContent = extractTextFromMessage(message);
+
+          if (!textContent) {
+            continue;
+          }
+
+          if (textContent.includes('Payment is required for this service.')) {
+            continue;
+          }
+
+          if (statusValue === 'payment-required') {
+            continue;
+          }
+
+          if (!downloadLine && textContent.toLowerCase().includes('http')) {
+            downloadLine = textContent;
+            break;
+          }
+
+          if (textContent.length > fallbackText.length) {
+            fallbackText = textContent;
           }
         }
+
+        const confirmationText = downloadLine || fallbackText;
+
+        if (confirmationText) {
+          merchantConfirmation = `\n\nMerchant delivered the Developer Relations Ebook:\n\n${confirmationText}`;
+        }
       }
+
+      const downloadMessage = `Download the Developer Relations Ebook anytime: ${EBOOK_DOWNLOAD_URL}`;
+      merchantConfirmation = merchantConfirmation
+        ? `${merchantConfirmation}\n\n${downloadMessage}`
+        : `\n\n${downloadMessage}`;
 
       const amountUSDC = (Number(amount) / 1_000_000).toFixed(6);
       const result = `✅ Payment completed successfully!
@@ -299,6 +360,7 @@ async function confirmPayment(
 - Amount: ${amountUSDC} USDC (${amount.toString()} atomic units)
 - Token: ${tokenAddress}
 - Merchant: ${merchantAddress}
+- Download: ${EBOOK_DOWNLOAD_URL}
 - Transaction: ${transferResult.txHash}
 - View on BaseScan: https://sepolia.basescan.org/tx/${transferResult.txHash}${merchantConfirmation}`;
 
@@ -351,44 +413,39 @@ export const clientAgent = new Agent({
   name: 'x402_client_agent',
   model: 'gemini-2.0-flash',
   description: 'An orchestrator agent that can interact with merchants and handle payments.',
-  instruction: `You are a helpful client agent that assists users in buying products from merchant agents using cryptocurrency payments.
+  instruction: `You are a helpful client agent that helps users purchase the Developer Relations Ebook from the merchant agent using USDC on the Base Sepolia network.
 
-**How you work:**
-This is an x402 payment demo. You can help users purchase products from merchant agents using USDC on the Base Sepolia blockchain.
+**What you know**
+- The merchant sells a single product: the Developer Relations Ebook for exactly 1 USDC.
+- The merchant is the source of truth for product descriptions, so use tools to fetch their wording.
+- Your connected wallet address is ${wallet.getAddress()}.
 
-**When users greet you or send unclear messages:**
-Introduce yourself and explain what you can do:
-- "Hi! I'm a client agent that can help you purchase products using cryptocurrency."
-- "I can connect to merchant agents and handle the payment process for you."
-- "Try asking me to buy something, like: 'I want to buy a banana'"
-- "Your wallet is connected at: ${wallet.getAddress()}"
+**Greetings or unclear requests**
+- Respond warmly, explain that you can help them buy the Developer Relations Ebook for 1 USDC, and mention the connected wallet address.
 
-**When users want to buy something:**
-1. Use sendMessageToMerchant to request the product from the merchant
-2. The merchant will respond with payment requirements (amount in USDC)
-3. Ask the user to confirm: "The merchant is requesting X USDC for [product]. Do you want to proceed?"
-4. If user confirms ("yes", "confirm", "ok"), use confirmPayment to sign and submit
-5. If user declines ("no", "cancel"), use cancelPayment
+**When users ask about products, pricing, or details**
+1. Call sendMessageToMerchant with the user's question (or a short variant such as "What products do you have?").
+2. Relay the merchant's response clearly so the user sees the latest description and price.
 
-**Important guidelines:**
-- ALWAYS explain what you're doing in a friendly, clear way
-- When greeting messages arrive, respond warmly and explain your capabilities
-- Be transparent about payment amounts before proceeding
-- Handle errors gracefully and explain what went wrong
-- If the user message doesn't relate to purchasing, kindly redirect them to ask for a product
+**When users want to purchase**
+1. Use sendMessageToMerchant to tell the merchant the user wants to buy the ebook (e.g., "I want to buy the Developer Relations Ebook").
+2. The merchant will respond with x402 payment requirements.
+3. Summarize the payment request (price, token, network) and ask the user for explicit confirmation before proceeding.
+4. If the user confirms, call confirmPayment to sign and submit the payment. If they decline, call cancelPayment and let them know nothing was charged.
 
-**Example interactions:**
+**After payment completes**
+- Share the merchant's confirmation verbatim. They will provide a secure download link for the ebook; do not alter or shorten the link.
+- Highlight the on-chain transaction hash so the user can review it later.
 
-User: "hello"
-You: "Hi! I'm an x402 payment client agent. I can help you buy products from merchants using USDC cryptocurrency. Your wallet is ready at ${wallet.getAddress()}. Try asking me to buy something, like 'I want to buy a banana'!"
+**Other guidelines**
+- Keep explanations friendly and transparent.
+- Make sure every payment action is opt-in from the user.
+- If something goes wrong, explain what happened and how to retry.
 
-User: "I want to buy a banana"
-You: [Contact merchant, receive requirements]
-You: "The merchant is requesting 54.39 USDC for a banana. Would you like to proceed with this payment?"
-
-User: "yes"
-You: [Sign and submit payment]
-You: "✅ Payment successful! Your banana order has been confirmed!"`,
+**Example flow**
+- User: "What can I buy?" → You call sendMessageToMerchant and report back that the Developer Relations Ebook is available for 1 USDC.
+- User: "Great, I'd like to get it." → You call sendMessageToMerchant to initiate the purchase, present the payment request, and ask "Do you want me to submit 1 USDC now?"
+- User: "Yes" → You call confirmPayment, then share the merchant's delivery response (the download link) and the transaction hash.`,
 
   tools: [
     sendMessageToMerchant,

@@ -20,6 +20,7 @@
  */
 
 import { createServer } from 'http';
+import { existsSync } from 'fs';
 import { wrappedMerchantAgent, lastPaymentException, clearLastPaymentException } from './wrapped-agent';
 import { MerchantServerExecutor } from './src/executor/MerchantServerExecutor';
 import {
@@ -28,13 +29,25 @@ import {
   x402Utils,
   TaskState,
 } from 'a2a-x402';
-// Import directly from the compiled files, bypassing package.json exports
-// to avoid path resolution issues in Docker
+import { isPurchaseIntent } from './src/utils/intent';
 const path = require('path');
-const { Runner } = require(path.resolve('/node_modules/adk-typescript/dist/runners'));
-const { InMemorySessionService } = require(path.resolve('/node_modules/adk-typescript/dist/sessions'));
-const { InMemoryArtifactService } = require(path.resolve('/node_modules/adk-typescript/dist/artifacts'));
-const { InMemoryMemoryService } = require(path.resolve('/node_modules/adk-typescript/dist/memory'));
+
+// Resolve ADK modules from the compiled dist directory via the package entrypoint
+// so we bypass broken export aliases like "dist/runners".
+const adkDistDir = path.dirname(require.resolve('adk-typescript'));
+
+const loadAdkDistModule = (modulePath: string) => {
+  const directFile = path.join(adkDistDir, `${modulePath}.js`);
+  if (existsSync(directFile)) {
+    return require(directFile);
+  }
+  return require(path.join(adkDistDir, modulePath));
+};
+
+const { Runner } = loadAdkDistModule('runners');
+const { InMemorySessionService } = loadAdkDistModule('sessions');
+const { InMemoryArtifactService } = loadAdkDistModule('artifacts');
+const { InMemoryMemoryService } = loadAdkDistModule('memory');
 
 const PORT = process.env.PORT || 10000;
 const utils = new x402Utils();
@@ -55,6 +68,11 @@ const runner = new Runner({
 
 // AgentExecutor adapter that uses ADK Runner
 class AgentExecutorAdapter {
+  private readonly paymentTool: ((params: any, context: any) => Promise<any>) | null =
+    (wrappedMerchantAgent.tools?.find(
+      (tool: any) => typeof tool === 'function' && tool.name === 'getProductDetailsAndRequestPayment',
+    ) as ((params: any, context: any) => Promise<any>) | undefined) || null;
+
   async execute(context: any, eventQueue: any): Promise<void> {
     try {
       console.log('\n=== AgentExecutorAdapter Debug ===');
@@ -82,6 +100,26 @@ class AgentExecutorAdapter {
       if (lastPaymentException) {
         console.log('💳 Found payment exception after execution, re-throwing...');
         throw lastPaymentException;
+      }
+
+      // Enforce payment flow if the user clearly intended to purchase but the model failed
+      const paymentStatus = utils.getPaymentStatusFromMessage(context.message);
+
+      if (
+        !lastPaymentException &&
+        this.paymentTool &&
+        isPurchaseIntent(context.message) &&
+        !paymentStatus
+      ) {
+        console.log('⚠️ No payment exception raised despite purchase intent. Triggering payment tool manually.');
+        await this.paymentTool('Developer Relations Ebook', context);
+
+        if (lastPaymentException) {
+          console.log('💳 Payment exception produced after manual trigger. Re-throwing for executor handling.');
+          throw lastPaymentException;
+        } else {
+          console.warn('⚠️ Manual payment trigger did not produce an x402 exception.');
+        }
       }
     } catch (error) {
       // If it's a payment exception, re-throw so executor can catch it
@@ -248,7 +286,7 @@ server.listen(PORT, () => {
   console.log(`\nTest with:`);
   console.log(`curl -X POST http://localhost:${PORT} \\`);
   console.log(`  -H "Content-Type: application/json" \\`);
-  console.log(`  -d '{"text": "I want to buy a banana"}'`);
+  console.log(`  -d '{"text": "hello world!"}'`);
 });
 
 // Graceful shutdown

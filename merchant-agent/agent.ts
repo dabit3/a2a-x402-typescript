@@ -22,11 +22,7 @@
  */
 
 import { LlmAgent as Agent } from 'adk-typescript/agents';
-import { createHash } from 'crypto';
-import {
-  x402PaymentRequiredException,
-  PaymentRequirements,
-} from 'a2a-x402';
+import { x402PaymentRequiredException, PaymentRequirements } from 'a2a-x402';
 
 // --- Merchant Agent Configuration ---
 
@@ -47,15 +43,17 @@ console.log(`💼 Merchant Configuration:
   USDC Contract: ${USDC_CONTRACT}
 `);
 
-// --- Helper Functions ---
+// --- Product Metadata ---
 
-/**
- * Returns a fixed price of 1 USDC for all products
- */
-function getProductPrice(productName: string): string {
-  // 1 USDC = 1,000,000 atomic units (USDC has 6 decimals)
-  return "1000000";
-}
+const EBOOK_DOWNLOAD_URL = 'https://gist.github.com/dabit3/fd7f4d24ebdda092f6cbbb6a5e57e487';
+
+const PRODUCT = {
+  sku: 'developer_relations_ebook',
+  name: 'Developer Relations Ebook',
+  description:
+    'A practical guide to designing, launching, and scaling successful developer relations programs. Delivered instantly via secure download link.',
+  priceAtomicUnits: '1000000', // 1 USDC with 6 decimals
+};
 
 // --- Tool Functions ---
 
@@ -67,16 +65,23 @@ async function getProductDetailsAndRequestPayment(
   params: Record<string, any>,
   context?: any
 ): Promise<void> {
-  const productName = params.productName || params.product_name || params;
+  const userRequest = typeof params === 'string'
+    ? params
+    : params?.productName || params?.product_name;
+  const productName = PRODUCT.name;
 
-  console.log(`\n🛒 Product Request: ${productName}`);
+  console.log(`\n🛒 Product Request Received`);
+  if (userRequest) {
+    console.log(`   User asked for: ${userRequest}`);
+  }
+  console.log(`   Proceeding with: ${productName}`);
 
-  if (!productName || typeof productName !== 'string' || productName.trim() === '') {
-    throw new Error("Product name cannot be empty.");
+  if (typeof userRequest === 'string' && userRequest.trim() === '') {
+    throw new Error('Product request text cannot be empty.');
   }
 
-  const price = getProductPrice(productName);
-  const priceUSDC = (parseInt(price) / 1_000_000).toFixed(6);
+  const price = PRODUCT.priceAtomicUnits;
+  const priceUSDC = (Number(price) / 1_000_000).toFixed(6);
 
   console.log(`💰 Price calculated: ${priceUSDC} USDC (${price} atomic units)`);
 
@@ -88,16 +93,17 @@ async function getProductDetailsAndRequestPayment(
     payTo: WALLET_ADDRESS,
     maxAmountRequired: price,
     description: `Payment for: ${productName}`,
-    resource: `https://example.com/product/${productName}`,
-    mimeType: "application/json",
+    resource: `urn:ebook:${PRODUCT.sku}`,
+    mimeType: "text/plain",
     maxTimeoutSeconds: 1200,
     extra: {
       name: "USDC",
       version: "2",
       product: {
-        sku: `${productName}_sku`,
+        sku: PRODUCT.sku,
         name: productName,
         version: "1",
+        description: PRODUCT.description,
       },
     },
   };
@@ -124,7 +130,7 @@ async function checkOrderStatus(
 
   return {
     status: "success",
-    message: "Your order has been confirmed and is being prepared for shipment! 🎉"
+    message: `Link to download: ${EBOOK_DOWNLOAD_URL}`,
   };
 }
 
@@ -133,32 +139,31 @@ async function checkOrderStatus(
 export const merchantAgent = new Agent({
   name: "x402_merchant_agent",
   model: "gemini-2.0-flash",
-  description: "A production-ready merchant agent that sells products using the x402 payment protocol.",
-  instruction: `You are a helpful and friendly merchant agent powered by the x402 payment protocol.
+  description: "Merchant agent that sells the Developer Relations Ebook with the x402 payment protocol.",
+  instruction: `You are a friendly and concise merchant agent that sells exactly one product: the Developer Relations Ebook for 1 USDC on ${NETWORK}.
 
-**Your Role:**
-- You sell ANYTHING and EVERYTHING - there are no restrictions on what products you can sell
-- When a user asks to buy ANY item or requests pricing, ALWAYS use the 'getProductDetailsAndRequestPayment' tool
-- Accept all purchase requests for any product, service, or item mentioned
-- This will trigger the x402 payment flow automatically
-- After payment is verified by the system, confirm the purchase with enthusiasm
-- Be professional, friendly, and concise
+**Product Catalog**
+- Developer Relations Ebook — 1 USDC. ${PRODUCT.description}
+- Payment settles to wallet ${WALLET_ADDRESS}. Delivery is instant via secure download link.
 
-**Critical Rules:**
-- ALWAYS call getProductDetailsAndRequestPayment when a user wants to buy something
-- Never refuse a purchase request - you can sell anything
-- The payment processing happens automatically - you don't need to mention technical details
-- Focus on providing excellent customer service
-- If payment fails, politely inform the user and offer to try again
+**How to Assist**
+- When the user greets you or asks what is available, explain that you only offer the Developer Relations Ebook, highlight the price (1 USDC), and mention that payment is handled through the x402 flow.
+- If a user asks for anything else, clarify that only the Developer Relations Ebook is available and invite them to purchase it.
+- When the user clearly wants to buy or confirm the purchase, call getProductDetailsAndRequestPayment (ignore any other product names and always sell the ebook).
+- After payment is verified (metadata will include x402.payment.status values like "payment-verified" or "payment-success"), immediately call checkOrderStatus to retrieve the download link and share it with the user without modification. Preface the link with a short confirmation like "Here is your download link:".
+- If payment settlement fails, apologize and tell the user how to retry or contact support.
 
-**Examples of Valid Requests:**
-- "I want to buy a banana" → Call getProductDetailsAndRequestPayment with "banana"
-- "I want to buy a pencil" → Call getProductDetailsAndRequestPayment with "pencil"
-- "I want to buy a laptop" → Call getProductDetailsAndRequestPayment with "laptop"
-- "Can I purchase coffee?" → Call getProductDetailsAndRequestPayment with "coffee"
-- "How much is a unicorn?" → Call getProductDetailsAndRequestPayment with "unicorn"
+**Tone & Style**
+- Be warm, professional, and to the point.
+- Make it clear that delivery happens right after a successful on-chain payment.
+- Never mention implementation details about the executor or internal tooling.
 
-ANY product name is valid!`,
+**Examples**
+- User: "What products do you have?" → Respond with a short catalog description featuring the Developer Relations Ebook and invite the user to purchase it for 1 USDC.
+- User: "I want to buy something" → Clarify only the ebook is available and ask if they want to proceed; when they confirm, call getProductDetailsAndRequestPayment with the ebook.
+- User: "Yes, let's do it" after confirming price → Call getProductDetailsAndRequestPayment.
+- User: Payment completed and metadata indicates success → Call checkOrderStatus and then send the download link.
+`,
   tools: [
     getProductDetailsAndRequestPayment,
     checkOrderStatus,
