@@ -44,7 +44,9 @@ export class ProductionFacilitatorClient implements FacilitatorClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
+          ...(this.config.apiKey && {
+            Authorization: `Bearer ${this.config.apiKey}`,
+          }),
         },
         body: JSON.stringify({
           payload,
@@ -60,7 +62,7 @@ export class ProductionFacilitatorClient implements FacilitatorClient {
         };
       }
 
-      const result = await response.json() as any;
+      const result = (await response.json()) as any;
       console.log(`✅ Verification result:`, result);
 
       return {
@@ -89,7 +91,9 @@ export class ProductionFacilitatorClient implements FacilitatorClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
+          ...(this.config.apiKey && {
+            Authorization: `Bearer ${this.config.apiKey}`,
+          }),
         },
         body: JSON.stringify({
           payload,
@@ -106,7 +110,7 @@ export class ProductionFacilitatorClient implements FacilitatorClient {
         };
       }
 
-      const result = await response.json() as any;
+      const result = (await response.json()) as any;
       console.log(`✅ Settlement result:`, result);
 
       return {

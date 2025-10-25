@@ -15,7 +15,7 @@
  * Server-side executor for merchant implementations
  */
 
-import { x402BaseExecutor } from "./base";
+import { x402BaseExecutor } from './base';
 import {
   AgentExecutor,
   RequestContext,
@@ -29,20 +29,15 @@ import {
   x402PaymentRequiredResponse,
   VerifyResponse,
   PaymentPayload,
-} from "../types/state";
-import { x402ExtensionConfig } from "../types/config";
-import {
-  x402PaymentRequiredException,
-  x402ErrorCode,
-} from "../types/errors";
-import { logger } from "../core/logger";
+} from '../types/state';
+import { x402ExtensionConfig } from '../types/config';
+import { x402PaymentRequiredException, x402ErrorCode } from '../types/errors';
+import { logger } from '../core/logger';
 
 export abstract class x402ServerExecutor extends x402BaseExecutor {
   // Class-level store to persist across requests for a single server instance
-  private static _paymentRequirementsStore: Map<
-    string,
-    PaymentRequirements[]
-  > = new Map();
+  private static _paymentRequirementsStore: Map<string, PaymentRequirements[]> =
+    new Map();
 
   constructor(delegate: AgentExecutor, config?: Partial<x402ExtensionConfig>) {
     super(delegate, config);
@@ -64,10 +59,17 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     requirements: PaymentRequirements
   ): Promise<SettleResponse>;
 
-  async execute(context: RequestContext, eventQueue: EventQueue): Promise<void> {
+  async execute(
+    context: RequestContext,
+    eventQueue: EventQueue
+  ): Promise<void> {
     // Check if this is a payment submission
-    const taskStatus = this.utils.getPaymentStatusFromTask(context.currentTask!);
-    const messageStatus = this.utils.getPaymentStatusFromMessage(context.message);
+    const taskStatus = this.utils.getPaymentStatusFromTask(
+      context.currentTask!
+    );
+    const messageStatus = this.utils.getPaymentStatusFromMessage(
+      context.message
+    );
 
     if (
       taskStatus === PaymentStatus.PAYMENT_SUBMITTED ||
@@ -92,11 +94,11 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     context: RequestContext,
     eventQueue: EventQueue
   ): Promise<void> {
-    logger.log("Starting payment processing...");
+    logger.log('Starting payment processing...');
     const task = context.currentTask;
     if (!task) {
-      logger.error("Task not found in context during payment processing.");
-      throw new Error("Task not found in context");
+      logger.error('Task not found in context during payment processing.');
+      throw new Error('Task not found in context');
     }
 
     logger.log(
@@ -109,17 +111,19 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
 
     if (!paymentPayload) {
       logger.warn(
-        "Payment payload missing from both task and message metadata."
+        'Payment payload missing from both task and message metadata.'
       );
       return this._failPayment(
         task,
         x402ErrorCode.INVALID_SIGNATURE,
-        "Missing payment data",
+        'Missing payment data',
         eventQueue
       );
     }
 
-    logger.log(`Retrieved payment payload: ${JSON.stringify(paymentPayload, null, 2)}`);
+    logger.log(
+      `Retrieved payment payload: ${JSON.stringify(paymentPayload, null, 2)}`
+    );
 
     const paymentRequirements = this._extractPaymentRequirementsFromContext(
       task,
@@ -127,11 +131,11 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     );
 
     if (!paymentRequirements) {
-      logger.warn("Payment requirements missing from context.");
+      logger.warn('Payment requirements missing from context.');
       return this._failPayment(
         task,
         x402ErrorCode.INVALID_SIGNATURE,
-        "Missing payment requirements",
+        'Missing payment requirements',
         eventQueue
       );
     }
@@ -141,13 +145,15 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     );
 
     try {
-      logger.log("Calling verifyPayment...");
+      logger.log('Calling verifyPayment...');
       const verifyResponse = await this.verifyPayment(
         paymentPayload,
         paymentRequirements
       );
 
-      logger.log(`Verification response: ${JSON.stringify(verifyResponse, null, 2)}`);
+      logger.log(
+        `Verification response: ${JSON.stringify(verifyResponse, null, 2)}`
+      );
 
       if (!verifyResponse.isValid) {
         logger.warn(
@@ -156,12 +162,12 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         return this._failPayment(
           task,
           x402ErrorCode.INVALID_SIGNATURE,
-          verifyResponse.invalidReason || "Invalid payment",
+          verifyResponse.invalidReason || 'Invalid payment',
           eventQueue
         );
       }
     } catch (error) {
-      logger.error("Exception during payment verification:", error);
+      logger.error('Exception during payment verification:', error);
       return this._failPayment(
         task,
         x402ErrorCode.INVALID_SIGNATURE,
@@ -170,7 +176,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
       );
     }
 
-    logger.log("Payment verified successfully. Recording and updating task.");
+    logger.log('Payment verified successfully. Recording and updating task.');
     this.utils.recordPaymentVerified(task);
     await eventQueue.enqueueEvent(task);
 
@@ -178,14 +184,14 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     if (!task.metadata) {
       task.metadata = {};
     }
-    task.metadata["x402_payment_verified"] = true;
+    task.metadata['x402_payment_verified'] = true;
 
     try {
-      logger.log("Executing delegate agent...");
+      logger.log('Executing delegate agent...');
       await this._delegate.execute(context, eventQueue);
-      logger.log("Delegate agent execution finished.");
+      logger.log('Delegate agent execution finished.');
     } catch (error) {
-      logger.error("Exception during delegate execution:", error);
+      logger.error('Exception during delegate execution:', error);
       return this._failPayment(
         task,
         x402ErrorCode.SETTLEMENT_FAILED,
@@ -194,35 +200,38 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
       );
     }
 
-    logger.log("Delegate execution complete. Proceeding to settlement.");
+    logger.log('Delegate execution complete. Proceeding to settlement.');
 
     try {
-      logger.log("Calling settlePayment...");
+      logger.log('Calling settlePayment...');
       const settleResponse = await this.settlePayment(
         paymentPayload,
         paymentRequirements
       );
 
-      logger.log(`Settlement response: ${JSON.stringify(settleResponse, null, 2)}`);
+      logger.log(
+        `Settlement response: ${JSON.stringify(settleResponse, null, 2)}`
+      );
 
       if (settleResponse.success) {
-        logger.log("Settlement successful. Recording payment success.");
+        logger.log('Settlement successful. Recording payment success.');
         this.utils.recordPaymentSuccess(task, settleResponse);
         x402ServerExecutor._paymentRequirementsStore.delete(task.id);
       } else {
         logger.warn(`Settlement failed: ${settleResponse.errorReason}`);
-        const errorCode =
-          settleResponse.errorReason?.toLowerCase().includes("insufficient")
-            ? x402ErrorCode.INSUFFICIENT_FUNDS
-            : x402ErrorCode.SETTLEMENT_FAILED;
+        const errorCode = settleResponse.errorReason
+          ?.toLowerCase()
+          .includes('insufficient')
+          ? x402ErrorCode.INSUFFICIENT_FUNDS
+          : x402ErrorCode.SETTLEMENT_FAILED;
         this.utils.recordPaymentFailure(task, errorCode, settleResponse);
         x402ServerExecutor._paymentRequirementsStore.delete(task.id);
       }
 
       await eventQueue.enqueueEvent(task);
-      logger.log("Settlement processing finished.");
+      logger.log('Settlement processing finished.');
     } catch (error) {
-      logger.error("Exception during settlement:", error);
+      logger.error('Exception during settlement:', error);
       await this._failPayment(
         task,
         x402ErrorCode.SETTLEMENT_FAILED,
@@ -236,20 +245,20 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     acceptsArray: PaymentRequirements[],
     paymentPayload: PaymentPayload
   ): PaymentRequirements | null {
-    logger.log("Searching for matching payment requirement...");
+    logger.log('Searching for matching payment requirement...');
 
     for (const requirement of acceptsArray) {
       const schemeMatch = requirement.scheme === paymentPayload.scheme;
       const networkMatch = requirement.network === paymentPayload.network;
 
       if (schemeMatch && networkMatch) {
-        logger.log("  => Found a matching payment requirement.");
+        logger.log('  => Found a matching payment requirement.');
         return requirement;
       }
     }
 
     logger.warn(
-      "No matching payment requirement found after checking all options."
+      'No matching payment requirement found after checking all options.'
     );
     return null;
   }
@@ -274,7 +283,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
       this.utils.getPaymentPayloadFromMessage(context.message);
 
     if (!paymentPayload) {
-      logger.warn("Could not extract payment payload from task or message.");
+      logger.warn('Could not extract payment payload from task or message.');
       return null;
     }
 
@@ -291,7 +300,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     if (!task) {
       if (!context.taskId) {
         throw new Error(
-          "Cannot handle payment exception: task_id is missing from the context."
+          'Cannot handle payment exception: task_id is missing from the context.'
         );
       }
 
@@ -331,11 +340,12 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     errorReason: string,
     eventQueue: EventQueue
   ): Promise<void> {
-    const lastRequirements =
-      x402ServerExecutor._paymentRequirementsStore.get(task.id)?.[0];
+    const lastRequirements = x402ServerExecutor._paymentRequirementsStore.get(
+      task.id
+    )?.[0];
     const failureResponse: SettleResponse = {
       success: false,
-      network: lastRequirements?.network || "unknown",
+      network: lastRequirements?.network || 'unknown',
       errorReason,
     };
 

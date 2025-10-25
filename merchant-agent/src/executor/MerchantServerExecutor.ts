@@ -46,7 +46,9 @@ export class MerchantServerExecutor extends x402ServerExecutor {
     if (facilitator) {
       console.log('🔧 Using custom facilitator client');
     } else {
-      console.log('🌐 Using default facilitator (https://x402.org/facilitator)');
+      console.log(
+        '🌐 Using default facilitator (https://x402.org/facilitator)'
+      );
     }
   }
 
@@ -61,7 +63,11 @@ export class MerchantServerExecutor extends x402ServerExecutor {
     console.log(`Pay To: ${requirements.payTo}`);
 
     // Uses library's verifyPayment with default facilitator or custom one
-    const response = await verifyPayment(payload, requirements, this.facilitator);
+    const response = await verifyPayment(
+      payload,
+      requirements,
+      this.facilitator
+    );
 
     if (response.isValid) {
       console.log('✅ Payment Verified Successfully!');
@@ -84,7 +90,11 @@ export class MerchantServerExecutor extends x402ServerExecutor {
     console.log(`Amount: ${requirements.maxAmountRequired}`);
 
     // Uses library's settlePayment with default facilitator or custom one
-    const response = await settlePayment(payload, requirements, this.facilitator);
+    const response = await settlePayment(
+      payload,
+      requirements,
+      this.facilitator
+    );
 
     if (response.success) {
       console.log('✅ Payment Settled Successfully!');

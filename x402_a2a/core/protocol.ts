@@ -21,8 +21,8 @@ import {
   SettleResponse,
   VerifyResponse,
   FacilitatorClient,
-} from "../types/state";
-import { DefaultFacilitatorClient } from "./facilitator";
+} from '../types/state';
+import { DefaultFacilitatorClient } from './facilitator';
 
 /**
  * Verify payment signature and requirements using facilitator

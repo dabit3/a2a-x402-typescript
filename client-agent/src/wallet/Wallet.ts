@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { logger } from "../logger";
+import { logger } from '../logger';
 
 /**
  * Wallet implementation for client agent
@@ -38,7 +38,9 @@ export abstract class Wallet {
   /**
    * Signs a payment requirement and returns the signed payload.
    */
-  abstract signPayment(requirements: x402PaymentRequiredResponse): Promise<PaymentPayload>;
+  abstract signPayment(
+    requirements: x402PaymentRequiredResponse
+  ): Promise<PaymentPayload>;
 }
 
 export class LocalWallet extends Wallet {
@@ -51,13 +53,16 @@ export class LocalWallet extends Wallet {
     // Get private key from parameter or environment
     const key = privateKey || process.env.WALLET_PRIVATE_KEY;
     if (!key) {
-      throw new Error('WALLET_PRIVATE_KEY environment variable not set and no privateKey provided');
+      throw new Error(
+        'WALLET_PRIVATE_KEY environment variable not set and no privateKey provided'
+      );
     }
 
     // Get RPC URL from parameter or environment
-    const url = rpcUrl ||
-                process.env.BASE_SEPOLIA_RPC_URL ||
-                'https://base-sepolia.g.alchemy.com/v2/_sTLFEOJwL7dFs2bLmqUo';
+    const url =
+      rpcUrl ||
+      process.env.BASE_SEPOLIA_RPC_URL ||
+      'https://base-sepolia.g.alchemy.com/v2/_sTLFEOJwL7dFs2bLmqUo';
 
     this.provider = new ethers.JsonRpcProvider(url);
     this.wallet = new ethers.Wallet(key, this.provider);
@@ -87,7 +92,9 @@ export class LocalWallet extends Wallet {
         spenderAddress
       );
 
-      logger.log(`📋 Current allowance: ${currentAllowance.toString()}, Required: ${amount.toString()}`);
+      logger.log(
+        `📋 Current allowance: ${currentAllowance.toString()}, Required: ${amount.toString()}`
+      );
 
       if (currentAllowance >= amount) {
         logger.log('✅ Sufficient allowance already exists');
@@ -95,7 +102,9 @@ export class LocalWallet extends Wallet {
       }
 
       // Need to approve
-      logger.log(`🔓 Approving ${spenderAddress} to spend ${amount.toString()} tokens...`);
+      logger.log(
+        `🔓 Approving ${spenderAddress} to spend ${amount.toString()} tokens...`
+      );
 
       // Add 10% buffer to avoid multiple approvals for similar amounts
       const approvalAmount = (amount * BigInt(110)) / BigInt(100);
@@ -116,7 +125,6 @@ export class LocalWallet extends Wallet {
         logger.error(`❌ Approval transaction failed. TX: ${tx.hash}`);
         return false;
       }
-
     } catch (error) {
       logger.error('❌ Error during approval:', error);
       return false;
@@ -126,7 +134,9 @@ export class LocalWallet extends Wallet {
   /**
    * Signs a payment requirement, automatically handling approval if needed.
    */
-  async signPayment(requirements: x402PaymentRequiredResponse): Promise<PaymentPayload> {
+  async signPayment(
+    requirements: x402PaymentRequiredResponse
+  ): Promise<PaymentPayload> {
     const paymentOption = requirements.accepts[0];
 
     // Extract required information
@@ -134,15 +144,25 @@ export class LocalWallet extends Wallet {
     const merchantAddress = paymentOption.payTo;
     const amountRequired = BigInt(paymentOption.maxAmountRequired);
 
-    logger.log(`\n💳 Payment requested: ${amountRequired.toString()} tokens to ${merchantAddress}`);
+    logger.log(
+      `\n💳 Payment requested: ${amountRequired.toString()} tokens to ${merchantAddress}`
+    );
 
     // Automatically handle approval
-    const approved = await this.ensureApproval(tokenAddress, merchantAddress, amountRequired);
+    const approved = await this.ensureApproval(
+      tokenAddress,
+      merchantAddress,
+      amountRequired
+    );
     if (!approved) {
-      throw new Error('Failed to approve token spending. Payment cannot proceed.');
+      throw new Error(
+        'Failed to approve token spending. Payment cannot proceed.'
+      );
     }
 
-    logger.log('✅ Token approval confirmed, proceeding with payment signature...');
+    logger.log(
+      '✅ Token approval confirmed, proceeding with payment signature...'
+    );
 
     // Now sign the payment authorization
     const messageToSign = `Chain ID: ${paymentOption.network}
@@ -159,7 +179,8 @@ Amount: ${paymentOption.maxAmountRequired}
       to: paymentOption.payTo,
       value: paymentOption.maxAmountRequired,
       validAfter: Math.floor(Date.now() / 1000),
-      validBefore: Math.floor(Date.now() / 1000) + paymentOption.maxTimeoutSeconds,
+      validBefore:
+        Math.floor(Date.now() / 1000) + paymentOption.maxTimeoutSeconds,
       nonce: `0x${ethers.hexlify(ethers.randomBytes(32))}`,
       extra: { message: messageToSign },
     };
@@ -226,9 +247,9 @@ Amount: ${paymentOption.maxAmountRequired}
         logger.error(`❌ Transfer transaction failed. TX: ${tx.hash}`);
         return { success: false, txHash: tx.hash, error: 'Transaction failed' };
       }
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       logger.error('❌ Error during transfer:', errorMessage);
       return { success: false, error: errorMessage };
     }

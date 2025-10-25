@@ -43,13 +43,16 @@ export type {
   AgentExecutor,
   FacilitatorConfig,
   FacilitatorClient,
-} from "./types";
+} from './types';
 
-export { x402Metadata, TaskState } from "./types/state";
+export { x402Metadata, TaskState } from './types/state';
 
 // ===== Extension Constants =====
-export { X402_EXTENSION_URI, DEFAULT_X402_EXTENSION_CONFIG } from "./types/config";
-export { X402_EXTENSION } from "./extension";
+export {
+  X402_EXTENSION_URI,
+  DEFAULT_X402_EXTENSION_CONFIG,
+} from './types/config';
+export { X402_EXTENSION } from './extension';
 
 // ===== Core Functions =====
 export {
@@ -79,9 +82,9 @@ export {
   checkExtensionActivation,
   addExtensionActivationHeader,
   createX402AgentCard,
-} from "./core";
+} from './core';
 
-export type { ExtensionDeclaration } from "./core/agent";
+export type { ExtensionDeclaration } from './core/agent';
 
 // ===== Error Types =====
 export {
@@ -93,16 +96,16 @@ export {
   x402PaymentRequiredException,
   x402ErrorCode,
   mapErrorToCode,
-} from "./types/errors";
+} from './types/errors';
 
-export type { PaymentRequiredExceptionOptions } from "./types/errors";
+export type { PaymentRequiredExceptionOptions } from './types/errors';
 
 // ===== Optional Middleware =====
 export {
   x402BaseExecutor,
   x402ServerExecutor,
   x402ClientExecutor,
-} from "./executors";
+} from './executors';
 
 // ===== Version =====
-export const VERSION = "1.0.0";
+export const VERSION = '1.0.0';

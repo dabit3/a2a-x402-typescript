@@ -15,14 +15,13 @@
  * Base executor for x402 payment middleware
  */
 
+import { AgentExecutor, RequestContext, EventQueue } from '../types/state';
 import {
-  AgentExecutor,
-  RequestContext,
-  EventQueue,
-} from "../types/state";
-import { x402ExtensionConfig, DEFAULT_X402_EXTENSION_CONFIG } from "../types/config";
-import { x402Utils } from "../core/utils";
-import { checkExtensionActivation } from "../core/agent";
+  x402ExtensionConfig,
+  DEFAULT_X402_EXTENSION_CONFIG,
+} from '../types/config';
+import { x402Utils } from '../core/utils';
+import { checkExtensionActivation } from '../core/agent';
 
 export abstract class x402BaseExecutor implements AgentExecutor {
   protected _delegate: AgentExecutor;
@@ -44,5 +43,8 @@ export abstract class x402BaseExecutor implements AgentExecutor {
     return true;
   }
 
-  abstract execute(context: RequestContext, eventQueue: EventQueue): Promise<void>;
+  abstract execute(
+    context: RequestContext,
+    eventQueue: EventQueue
+  ): Promise<void>;
 }

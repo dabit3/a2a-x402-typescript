@@ -15,7 +15,7 @@
  * Payment signing and processing functions
  */
 
-import { Wallet, TypedDataDomain, TypedDataField } from "ethers";
+import { Wallet, TypedDataDomain, TypedDataField } from 'ethers';
 import {
   PaymentRequirements,
   x402PaymentRequiredResponse,
@@ -23,7 +23,7 @@ import {
   ExactPaymentPayload,
   EIP3009Authorization,
   SupportedNetworks,
-} from "../types/state";
+} from '../types/state';
 
 /**
  * Select payment requirement from accepts array (simple implementation)
@@ -35,16 +35,16 @@ function selectPaymentRequirement(
   // Simple selection: return first requirement
   // In a real implementation, this would check maxValue and other criteria
   if (accepts.length === 0) {
-    throw new Error("No payment requirements available");
+    throw new Error('No payment requirements available');
   }
 
   if (maxValue !== undefined) {
     // Filter by max value
     const affordable = accepts.filter(
-      (req) => parseInt(req.maxAmountRequired) <= maxValue
+      req => parseInt(req.maxAmountRequired) <= maxValue
     );
     if (affordable.length === 0) {
-      throw new Error("No affordable payment requirements found");
+      throw new Error('No affordable payment requirements found');
     }
     return affordable[0];
   }
@@ -58,7 +58,9 @@ function selectPaymentRequirement(
 function generateNonce(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
-  return "0x" + Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  return (
+    '0x' + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  );
 }
 
 /**
@@ -114,8 +116,8 @@ export async function processPayment(
 
   // EIP-712 domain
   const domain: TypedDataDomain = {
-    name: requirements.extra?.name || "USDC",
-    version: requirements.extra?.version || "2",
+    name: requirements.extra?.name || 'USDC',
+    version: requirements.extra?.version || '2',
     chainId: getChainId(requirements.network as SupportedNetworks),
     verifyingContract: requirements.asset,
   };
@@ -123,12 +125,12 @@ export async function processPayment(
   // EIP-712 types for EIP-3009
   const types: Record<string, TypedDataField[]> = {
     TransferWithAuthorization: [
-      { name: "from", type: "address" },
-      { name: "to", type: "address" },
-      { name: "value", type: "uint256" },
-      { name: "validAfter", type: "uint256" },
-      { name: "validBefore", type: "uint256" },
-      { name: "nonce", type: "bytes32" },
+      { name: 'from', type: 'address' },
+      { name: 'to', type: 'address' },
+      { name: 'value', type: 'uint256' },
+      { name: 'validAfter', type: 'uint256' },
+      { name: 'validBefore', type: 'uint256' },
+      { name: 'nonce', type: 'bytes32' },
     ],
   };
 
@@ -163,15 +165,15 @@ export async function processPayment(
 function getChainId(network: SupportedNetworks): number {
   const chainIds: Record<string, number> = {
     base: 8453,
-    "base-sepolia": 84532,
+    'base-sepolia': 84532,
     ethereum: 1,
     polygon: 137,
-    "polygon-amoy": 80002,
+    'polygon-amoy': 80002,
   };
 
   if (!(network in chainIds)) {
     throw new Error(
-      `Unsupported network "${network}". Supported networks: ${Object.keys(chainIds).join(", ")}`
+      `Unsupported network "${network}". Supported networks: ${Object.keys(chainIds).join(', ')}`
     );
   }
 

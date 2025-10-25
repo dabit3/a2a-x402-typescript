@@ -15,7 +15,7 @@
  * Configuration types for x402_a2a
  */
 
-export const X402_EXTENSION_URI = "https://github.com/google-a2a/a2a-x402/v0.1";
+export const X402_EXTENSION_URI = 'https://github.com/google-a2a/a2a-x402/v0.1';
 
 export interface TokenAmount {
   value: string;
@@ -34,7 +34,7 @@ export interface x402ExtensionConfig {
 
 export const DEFAULT_X402_EXTENSION_CONFIG: x402ExtensionConfig = {
   extensionUri: X402_EXTENSION_URI,
-  version: "0.1",
+  version: '0.1',
   x402Version: 1,
   required: true,
 };

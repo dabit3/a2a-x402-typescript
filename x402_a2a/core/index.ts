@@ -15,15 +15,15 @@
  * Core exports
  */
 
-export { createPaymentRequirements } from "./merchant";
-export { processPayment, processPaymentRequired } from "./wallet";
-export { verifyPayment, settlePayment } from "./protocol";
-export { DefaultFacilitatorClient } from "./facilitator";
+export { createPaymentRequirements } from './merchant';
+export { processPayment, processPaymentRequired } from './wallet';
+export { verifyPayment, settlePayment } from './protocol';
+export { DefaultFacilitatorClient } from './facilitator';
 export {
   x402Utils,
   createPaymentSubmissionMessage,
   extractTaskId,
-} from "./utils";
+} from './utils';
 export {
   requirePayment,
   requirePaymentChoice,
@@ -31,11 +31,11 @@ export {
   smartPaidService,
   createTieredPaymentOptions,
   checkPaymentContext,
-} from "./helpers";
+} from './helpers';
 export {
   getExtensionDeclaration,
   checkExtensionActivation,
   addExtensionActivationHeader,
   createX402AgentCard,
   ExtensionDeclaration,
-} from "./agent";
+} from './agent';

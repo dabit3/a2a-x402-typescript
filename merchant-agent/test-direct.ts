@@ -23,7 +23,10 @@ async function test() {
     userContent,
   });
 
-  console.log('Running agent with userContent:', JSON.stringify(userContent, null, 2));
+  console.log(
+    'Running agent with userContent:',
+    JSON.stringify(userContent, null, 2)
+  );
   console.log('InvocationContext.userContent:', invocationContext.userContent);
 
   try {

@@ -26,7 +26,8 @@ import { logger } from './src/logger';
 
 // --- Client Agent Configuration ---
 
-const MERCHANT_AGENT_URL = process.env.MERCHANT_AGENT_URL || 'http://localhost:10000';
+const MERCHANT_AGENT_URL =
+  process.env.MERCHANT_AGENT_URL || 'http://localhost:10000';
 
 logger.log(`🤖 Client Agent Configuration:
   Merchant URL: ${MERCHANT_AGENT_URL}
@@ -58,17 +59,20 @@ async function ensureSession(): Promise<string> {
 
   // Create a new session
   try {
-    const response = await fetch(`${MERCHANT_AGENT_URL}/apps/x402_merchant_agent/users/client-user/sessions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
+    const response = await fetch(
+      `${MERCHANT_AGENT_URL}/apps/x402_merchant_agent/users/client-user/sessions`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to create session: ${response.status}`);
     }
 
-    const session = await response.json() as any;
+    const session = (await response.json()) as any;
     state.sessionId = session.id;
     logger.log(`✅ Created new session: ${state.sessionId}`);
     return state.sessionId!;
@@ -88,7 +92,10 @@ async function sendMessageToMerchant(
   context?: ToolContext
 ): Promise<string> {
   // Handle both direct string and object with message/params field
-  const message = typeof params === 'string' ? params : (params.message || params.params || params);
+  const message =
+    typeof params === 'string'
+      ? params
+      : params.message || params.params || params;
 
   logger.log(`\n📤 Sending message to merchant: "${message}"`);
 
@@ -115,11 +122,13 @@ async function sendMessageToMerchant(
 
     if (!response.ok) {
       const errorText = await response.text();
-      logger.error(`❌ Merchant server error (${response.status}): ${errorText}`);
+      logger.error(
+        `❌ Merchant server error (${response.status}): ${errorText}`
+      );
       return `Sorry, I couldn't connect to the merchant. The server returned an error: ${response.status}. Make sure the merchant server is running at ${MERCHANT_AGENT_URL}`;
     }
 
-    const events = await response.json() as any[];
+    const events = (await response.json()) as any[];
     logger.log(`✅ Received ${events.length} events from merchant`);
     logger.log('📊 All events:', JSON.stringify(events, null, 2));
 
@@ -139,9 +148,16 @@ async function sendMessageToMerchant(
       if (event.errorCode && event.errorCode === 'x402_payment_required') {
         logger.log('🎯 Found payment requirement event!');
         const paymentReqs = event.errorData?.paymentRequirements;
-        logger.log(`Payment requirements data:`, JSON.stringify(paymentReqs, null, 2));
+        logger.log(
+          `Payment requirements data:`,
+          JSON.stringify(paymentReqs, null, 2)
+        );
 
-        if (paymentReqs && paymentReqs.accepts && paymentReqs.accepts.length > 0) {
+        if (
+          paymentReqs &&
+          paymentReqs.accepts &&
+          paymentReqs.accepts.length > 0
+        ) {
           const paymentOption = paymentReqs.accepts[0];
           const price = BigInt(paymentOption.maxAmountRequired);
           const priceUSDC = (Number(price) / 1_000_000).toFixed(6);
@@ -156,7 +172,9 @@ async function sendMessageToMerchant(
             contextId: event.invocationId,
           };
 
-          logger.log(`💰 Payment required: ${priceUSDC} USDC for ${productName}`);
+          logger.log(
+            `💰 Payment required: ${priceUSDC} USDC for ${productName}`
+          );
 
           return `The merchant agent responded! They're selling ${productName} for ${priceUSDC} USDC.
 
@@ -172,7 +190,9 @@ Would you like to proceed with this payment?`;
     }
 
     // Second pass: No payment requirements found, look for regular text responses
-    logger.log('\n📝 No payment requirements found, checking for text responses...');
+    logger.log(
+      '\n📝 No payment requirements found, checking for text responses...'
+    );
     for (const event of events) {
       if (event.content && event.content.parts) {
         const textParts = event.content.parts
@@ -189,11 +209,13 @@ Would you like to proceed with this payment?`;
 
     // If we got a response but no payment requirements or message, return generic success
     return `I contacted the merchant, but received an unexpected response format. Events: ${JSON.stringify(events)}`;
-
   } catch (error) {
     logger.error('❌ Failed to contact merchant:', error);
     if (error instanceof Error) {
-      if (error.message.includes('ECONNREFUSED') || error.message.includes('fetch failed')) {
+      if (
+        error.message.includes('ECONNREFUSED') ||
+        error.message.includes('fetch failed')
+      ) {
         return `❌ Cannot connect to the merchant server at ${MERCHANT_AGENT_URL}. Please make sure:\n1. The merchant server is running (npm start in merchant-agent directory)\n2. The server is accessible at ${MERCHANT_AGENT_URL}\n\nError: ${error.message}`;
       }
       return `Failed to contact merchant: ${error.message}`;
@@ -223,13 +245,21 @@ async function confirmPayment(
     const productName = paymentOption.extra?.product?.name || 'product';
 
     // Step 1: Sign the payment with wallet (this also handles approval)
-    const signedPayload = await wallet.signPayment(state.pendingPayment.requirements);
+    const signedPayload = await wallet.signPayment(
+      state.pendingPayment.requirements
+    );
 
     logger.log('✅ Payment signed successfully!');
-    logger.log(`   Signature: ${signedPayload.payload.signature.substring(0, 20)}...`);
+    logger.log(
+      `   Signature: ${signedPayload.payload.signature.substring(0, 20)}...`
+    );
 
     // Step 2: Execute the actual token transfer
-    const transferResult = await wallet.executePayment(tokenAddress, merchantAddress, amount);
+    const transferResult = await wallet.executePayment(
+      tokenAddress,
+      merchantAddress,
+      amount
+    );
 
     if (!transferResult.success) {
       return `Payment transfer failed: ${transferResult.error}`;
@@ -265,12 +295,17 @@ async function confirmPayment(
       });
 
       if (!paymentResponse.ok) {
-        logger.error(`❌ Failed to send payment to merchant: ${paymentResponse.status}`);
+        logger.error(
+          `❌ Failed to send payment to merchant: ${paymentResponse.status}`
+        );
         return `⚠️ Payment was sent on-chain but merchant server returned error: ${paymentResponse.status}. Transaction: ${transferResult.txHash}`;
       }
 
-      const paymentData = await paymentResponse.json() as any;
-      logger.log('✅ Merchant received payment:', JSON.stringify(paymentData, null, 2));
+      const paymentData = (await paymentResponse.json()) as any;
+      logger.log(
+        '✅ Merchant received payment:',
+        JSON.stringify(paymentData, null, 2)
+      );
 
       // Check for confirmation in the response
       let merchantConfirmation = '';
@@ -306,12 +341,10 @@ async function confirmPayment(
       state.pendingPayment = undefined;
 
       return result;
-
     } catch (error) {
       logger.error('❌ Failed to notify merchant:', error);
       return `⚠️ Payment was sent on-chain successfully but couldn't notify merchant: ${error instanceof Error ? error.message : String(error)}\n\nTransaction: ${transferResult.txHash}\nView on BaseScan: https://sepolia.basescan.org/tx/${transferResult.txHash}`;
     }
-
   } catch (error) {
     logger.error('❌ Payment processing failed:', error);
     return `Payment processing failed: ${error instanceof Error ? error.message : String(error)}`;
@@ -350,7 +383,8 @@ async function getWalletInfo(
 export const clientAgent = new Agent({
   name: 'x402_client_agent',
   model: 'gemini-2.0-flash',
-  description: 'An orchestrator agent that can interact with merchants and handle payments.',
+  description:
+    'An orchestrator agent that can interact with merchants and handle payments.',
   instruction: `You are a helpful client agent that assists users in buying products from merchant agents using cryptocurrency payments.
 
 **How you work:**
@@ -390,12 +424,7 @@ User: "yes"
 You: [Sign and submit payment]
 You: "✅ Payment successful! Your banana order has been confirmed!"`,
 
-  tools: [
-    sendMessageToMerchant,
-    confirmPayment,
-    cancelPayment,
-    getWalletInfo,
-  ],
+  tools: [sendMessageToMerchant, confirmPayment, cancelPayment, getWalletInfo],
 });
 
 // Export as root agent for ADK

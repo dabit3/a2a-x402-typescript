@@ -15,41 +15,41 @@
  * Protocol error types and error code mapping
  */
 
-import { PaymentRequirements, SupportedNetworks } from "./state";
-import { Price, TokenAmount } from "./config";
+import { PaymentRequirements, SupportedNetworks } from './state';
+import { Price, TokenAmount } from './config';
 
 export class x402Error extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "x402Error";
+    this.name = 'x402Error';
   }
 }
 
 export class MessageError extends x402Error {
   constructor(message: string) {
     super(message);
-    this.name = "MessageError";
+    this.name = 'MessageError';
   }
 }
 
 export class ValidationError extends x402Error {
   constructor(message: string) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
 export class PaymentError extends x402Error {
   constructor(message: string) {
     super(message);
-    this.name = "PaymentError";
+    this.name = 'PaymentError';
   }
 }
 
 export class StateError extends x402Error {
   constructor(message: string) {
     super(message);
-    this.name = "StateError";
+    this.name = 'StateError';
   }
 }
 
@@ -72,7 +72,7 @@ export class x402PaymentRequiredException extends x402Error {
     errorCode?: string
   ) {
     super(message);
-    this.name = "x402PaymentRequiredException";
+    this.name = 'x402PaymentRequiredException';
 
     // Normalize to array format for consistency
     if (Array.isArray(paymentRequirements)) {
@@ -92,31 +92,31 @@ export class x402PaymentRequiredException extends x402Error {
     options: PaymentRequiredExceptionOptions
   ): Promise<x402PaymentRequiredException> {
     // Import here to avoid circular imports
-    const { createPaymentRequirements } = await import("../core/merchant");
+    const { createPaymentRequirements } = await import('../core/merchant');
 
     const requirements = await createPaymentRequirements({
       price: options.price,
       payToAddress: options.payToAddress,
       resource: options.resource,
       network: options.network,
-      description: options.description || "Payment required for this service",
+      description: options.description || 'Payment required for this service',
     });
 
     return new x402PaymentRequiredException(
-      options.message || options.description || "Payment required",
+      options.message || options.description || 'Payment required',
       requirements
     );
   }
 }
 
 export class x402ErrorCode {
-  static readonly INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS";
-  static readonly INVALID_SIGNATURE = "INVALID_SIGNATURE";
-  static readonly EXPIRED_PAYMENT = "EXPIRED_PAYMENT";
-  static readonly DUPLICATE_NONCE = "DUPLICATE_NONCE";
-  static readonly NETWORK_MISMATCH = "NETWORK_MISMATCH";
-  static readonly INVALID_AMOUNT = "INVALID_AMOUNT";
-  static readonly SETTLEMENT_FAILED = "SETTLEMENT_FAILED";
+  static readonly INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS';
+  static readonly INVALID_SIGNATURE = 'INVALID_SIGNATURE';
+  static readonly EXPIRED_PAYMENT = 'EXPIRED_PAYMENT';
+  static readonly DUPLICATE_NONCE = 'DUPLICATE_NONCE';
+  static readonly NETWORK_MISMATCH = 'NETWORK_MISMATCH';
+  static readonly INVALID_AMOUNT = 'INVALID_AMOUNT';
+  static readonly SETTLEMENT_FAILED = 'SETTLEMENT_FAILED';
 
   static getAllCodes(): string[] {
     return [
@@ -138,5 +138,5 @@ export function mapErrorToCode(error: Error): string {
   if (error instanceof PaymentError) {
     return x402ErrorCode.SETTLEMENT_FAILED;
   }
-  return "UNKNOWN_ERROR";
+  return 'UNKNOWN_ERROR';
 }
