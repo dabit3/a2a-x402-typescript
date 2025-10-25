@@ -66,6 +66,7 @@ function processPriceToAtomicAmount(
     ethereum: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
     polygon: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
     "polygon-amoy": "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
+    ink: "0x2D270e6886d130D724215A266106e6832161EAEd",
   };
 
   if (typeof price === "string") {
