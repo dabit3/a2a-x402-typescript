@@ -166,6 +166,7 @@ function getChainId(network: string): number {
     "ethereum": 1,
     "polygon": 137,
     "polygon-amoy": 80002,
+    "ink": 57073,
   };
   return chainIds[network] || 84532;
 }
