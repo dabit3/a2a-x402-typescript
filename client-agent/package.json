@@ -19,10 +19,10 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
+    "a2a-x402": "^0.0.4",
     "adk-typescript": "^1.0.3",
     "dotenv": "^17.2.3",
-    "ethers": "^6.13.0",
-    "a2a-x402": "^0.0.2"
+    "ethers": "^6.13.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

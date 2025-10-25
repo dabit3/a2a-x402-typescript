@@ -250,6 +250,13 @@ export class x402Utils {
     errorCode: string,
     settleResponse: SettleResponse
   ): Task {
+    // Per AP2/A2A guidance, keep the task in input-required so the client can retry
+    if (!task.status) {
+      task.status = { state: TaskState.INPUT_REQUIRED };
+    } else {
+      task.status.state = TaskState.INPUT_REQUIRED;
+    }
+
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
