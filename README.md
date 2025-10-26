@@ -1,8 +1,10 @@
-# a2a-x402
+# a2a-x402 with Algorand Support
 
-A complete TypeScript implementation of the [Python x402 payment protocol extension](https://github.com/google-agentic-commerce/a2a-x402) for A2A (Agent-to-Agent) communication. Enable your AI agents to request, verify, and settle crypto payments seamlessly.
+A complete TypeScript implementation of the [Python x402 payment protocol extension](https://github.com/google-agentic-commerce/a2a-x402) for A2A (Agent-to-Agent) communication, with **full Algorand blockchain support** in addition to EVM chains.
 
-[![npm version](https://badge.fury.io/js/a2a-x402.svg)](https://www.npmjs.com/package/a2a-x402)
+> **Based on:** [dabit3/a2a-x402-typescript](https://github.com/dabit3/a2a-x402-typescript)
+> This fork extends the original implementation with comprehensive Algorand support while maintaining full backward compatibility with EVM chains.
+
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Quick start
@@ -15,17 +17,39 @@ npm install a2a-x402
 
 #### Merchant side (request payment)
 
+**EVM (Ethereum, Base, Polygon):**
 ```typescript
 import { x402PaymentRequiredException } from 'a2a-x402';
 
-// In your agent tool, throw an exception to request payment:
+// Request payment on EVM chain
 throw new x402PaymentRequiredException(
   "Payment required for product",
   {
     scheme: "exact",
     network: "base-sepolia",
-    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC
+    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC contract
     payTo: "0xYourWalletAddress",
+    maxAmountRequired: "1000000", // 1 USDC in atomic units
+    resource: "/buy-product",
+    description: "Payment for banana",
+    mimeType: "application/json",
+    maxTimeoutSeconds: 1200,
+  }
+);
+```
+
+**Algorand:**
+```typescript
+import { x402PaymentRequiredException } from 'a2a-x402';
+
+// Request payment on Algorand
+throw new x402PaymentRequiredException(
+  "Payment required for product",
+  {
+    scheme: "exact",
+    network: "algorand-testnet",
+    asset: "10458941", // USDC ASA ID on TestNet
+    payTo: "YOUR_ALGORAND_ADDRESS_HERE",
     maxAmountRequired: "1000000", // 1 USDC in atomic units
     resource: "/buy-product",
     description: "Payment for banana",
@@ -37,6 +61,7 @@ throw new x402PaymentRequiredException(
 
 #### Client side (process payment)
 
+**EVM:**
 ```typescript
 import { processPayment, x402Utils } from 'a2a-x402';
 import { Wallet } from 'ethers';
@@ -47,22 +72,50 @@ const utils = new x402Utils();
 // Get payment requirements from task
 const paymentRequired = utils.getPaymentRequirements(task);
 
-// Sign the payment
+// Sign the payment (EVM uses EIP-712)
 const paymentPayload = await processPayment(
   paymentRequired.accepts[0],
   wallet
 );
 ```
 
+**Algorand:**
+```typescript
+import { processPayment, accountFromMnemonic, x402Utils } from 'a2a-x402';
+
+// Create Algorand account from mnemonic
+const account = accountFromMnemonic(process.env.ALGORAND_MNEMONIC);
+const utils = new x402Utils();
+
+// Get payment requirements from task
+const paymentRequired = utils.getPaymentRequirements(task);
+
+// Sign the payment (Algorand uses ED25519)
+const paymentPayload = await processPayment(
+  paymentRequired.accepts[0],
+  account
+);
+```
+
 ## Features
 
+### Core Features
 - **Exception-based payment flow** - Throw exceptions to request payments dynamically
 - **Full TypeScript support** - Complete type definitions and interfaces
-- **Ethereum wallet integration** - Built on ethers.js for signing and verification
 - **Dynamic pricing** - Set prices based on request parameters
-- **Multi-network support** - Works with Base, Base Sepolia, and other EVM chains
-- **ERC-20 token payments** - Native support for USDC and other tokens
 - **ADK-compatible** - Works seamlessly with [ADK TypeScript](https://github.com/njraladdin/adk-typescript)
+
+### Blockchain Support
+- **Multi-chain support** - Works with both EVM and Algorand networks
+- **EVM chains** - Base, Ethereum, Polygon (Mainnet and Testnets)
+  - Built on ethers.js v6 for signing and verification
+  - ERC-20 token payments with EIP-712 signatures
+  - Native USDC support on all networks
+- **Algorand chains** - MainNet, TestNet, BetaNet
+  - Built on algosdk for signing and verification
+  - ASA (Algorand Standard Asset) transfers with ED25519 signatures
+  - Native USDC support via ASAs
+  - Automatic ASA opt-in handling
 
 ## What's included
 
@@ -281,9 +334,11 @@ npm run dev
 
 ## Supported networks
 
-The library works with any EVM-compatible network. The example agents use:
+### EVM Networks
 
-### Base Sepolia (testnet)
+The library works with any EVM-compatible network:
+
+#### Base Sepolia (testnet)
 - Chain ID: `84532`
 - RPC: `https://sepolia.base.org`
 - USDC: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
@@ -292,11 +347,38 @@ The library works with any EVM-compatible network. The example agents use:
   - ETH: https://www.alchemy.com/faucets/base-sepolia
   - USDC: https://faucet.circle.com/
 
-### Base Mainnet (production)
+#### Base Mainnet (production)
 - Chain ID: `8453`
 - RPC: `https://mainnet.base.org`
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
+
+### Algorand Networks
+
+#### Algorand MainNet
+- Network: `algorand-mainnet`
+- Genesis ID: `mainnet-v1.0`
+- Algod: `https://mainnet-api.algonode.cloud`
+- Indexer: `https://mainnet-idx.algonode.cloud`
+- USDC ASA ID: `31566704`
+- Explorer: https://algoexplorer.io/
+
+#### Algorand TestNet
+- Network: `algorand-testnet`
+- Genesis ID: `testnet-v1.0`
+- Algod: `https://testnet-api.algonode.cloud`
+- Indexer: `https://testnet-idx.algonode.cloud`
+- USDC ASA ID: `10458941`
+- Explorer: https://testnet.algoexplorer.io/
+- Faucet: https://bank.testnet.algorand.network/
+
+#### Algorand BetaNet
+- Network: `algorand-betanet`
+- Genesis ID: `betanet-v1.0`
+- Algod: `https://betanet-api.algonode.cloud`
+- Indexer: `https://betanet-idx.algonode.cloud`
+- USDC ASA ID: `10458941` (placeholder)
+- Explorer: https://betanet.algoexplorer.io/
 
 ## Security
 
@@ -324,9 +406,16 @@ Always review approval amounts before signing transactions.
 - [Merchant agent README](merchant-agent/README.md) - Service provider implementation
 - [Deployment guide](merchant-agent/DEPLOYMENT.md) - Production deployment instructions
 
+### Algorand Documentation
+- [Algorand Conversion Guide](docs/ALGORAND_CONVERSION_GUIDE.md) - Complete implementation guide
+- [Codebase Analysis](docs/CODEBASE_ANALYSIS_FOR_ALGORAND.md) - Technical deep dive
+- [Key Files Reference](docs/KEY_FILES_REFERENCE.md) - Quick reference with file locations
+- [Analysis Index](docs/ANALYSIS_INDEX.md) - Documentation navigation guide
+
 ### Related projects
 - [ADK TypeScript](https://github.com/njraladdin/adk-typescript) - Agent Development Kit for TypeScript
 - [Python x402 implementation](https://github.com/google-agentic-commerce/a2a-x402) - Original protocol specification
+- [Original a2a-x402-typescript](https://github.com/dabit3/a2a-x402-typescript) - Base implementation
 
 ## License
 
