@@ -100,7 +100,7 @@ export interface SettleResponse {
   errorReason?: string;
 }
 
-// A2A Types (from adk-typescript)
+// A2A Types 
 export enum TaskState {
   SUBMITTED = "submitted",
   WORKING = "working",
