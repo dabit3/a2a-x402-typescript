@@ -62,6 +62,17 @@ function fixImportsInFile(filePath) {
       return match;
     }
 
+    // Resolve the absolute path of the import relative to the current file
+    const currentDir = path.dirname(filePath);
+    const resolvedPath = path.resolve(currentDir, relativePrefix + importPath);
+
+    // Check if this is a directory import (needs /index.js)
+    if (fs.existsSync(resolvedPath) && fs.statSync(resolvedPath).isDirectory()) {
+      modified = true;
+      return `${prefix}${relativePrefix}${importPath}/index.js${suffix}`;
+    }
+
+    // Otherwise, just add .js extension
     modified = true;
     return `${prefix}${relativePrefix}${importPath}.js${suffix}`;
   });
