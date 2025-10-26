@@ -17,7 +17,7 @@
     "prebuild": "npm run clean"
   },
   "dependencies": {
-    "a2a-x402": "^0.0.4",
+    "a2a-x402": "file:../x402_a2a",
     "adk-typescript": "1.0.3",
     "dotenv": "^17.2.3",
     "ethers": "^6.13.0"

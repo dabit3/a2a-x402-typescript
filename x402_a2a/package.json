@@ -1,6 +1,6 @@
 {
   "name": "a2a-x402",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "x402 payment protocol extension for A2A (TypeScript)",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -24,11 +24,12 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types && npm run build:pkgjson",
+    "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types && npm run build:pkgjson && npm run build:fix-esm",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:esm": "tsc --project tsconfig.esm.json",
     "build:types": "tsc --project tsconfig.types.json",
     "build:pkgjson": "echo '{\"type\":\"module\"}' > dist/esm/package.json && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
+    "build:fix-esm": "node scripts/fix-esm-imports.js",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
