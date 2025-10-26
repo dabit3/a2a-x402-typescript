@@ -54,12 +54,30 @@ FACILITATOR_API_KEY=your_facilitator_api_key
 ```bash
 PAYMENT_NETWORK=base-sepolia
 USDC_CONTRACT=0x036CbD53842c5426634e7929541eC2318f3dCF7e
+MERCHANT_WALLET_ADDRESS=0xYourEthereumAddress
 ```
 
 **Base Mainnet:**
 ```bash
 PAYMENT_NETWORK=base
 USDC_CONTRACT=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+MERCHANT_WALLET_ADDRESS=0xYourEthereumAddress
+```
+
+**Algorand TestNet (with NFDomains support!):**
+```bash
+PAYMENT_NETWORK=algorand-testnet
+MERCHANT_WALLET_ADDRESS=merchant.algo  # ← Can use .algo name!
+# Or use regular address:
+# MERCHANT_WALLET_ADDRESS=ABC123...XYZ789
+```
+
+**Algorand MainNet:**
+```bash
+PAYMENT_NETWORK=algorand-mainnet
+MERCHANT_WALLET_ADDRESS=merchant.algo  # ← NFDomains work automatically!
+# Or use regular address:
+# MERCHANT_WALLET_ADDRESS=ABC123...XYZ789
 ```
 
 **Ethereum Mainnet:**

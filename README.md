@@ -5,6 +5,8 @@ A complete TypeScript implementation of the [Python x402 payment protocol extens
 > **Based on:** [dabit3/a2a-x402-typescript](https://github.com/dabit3/a2a-x402-typescript)
 > This fork extends the original implementation with comprehensive Algorand support while maintaining full backward compatibility with EVM chains.
 
+✨ **NEW: NFDomains Support** - Use human-readable `.algo` names (like `alice.algo`) instead of long Algorand addresses!
+
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Quick start
