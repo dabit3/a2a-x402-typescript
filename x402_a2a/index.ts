@@ -23,6 +23,8 @@ export type {
   EIP712Domain,
   EIP3009Authorization,
   ExactPaymentPayload,
+  AlgorandAuthorization,
+  AlgorandPaymentPayload,
   PaymentPayload,
   PaymentRequirements,
   x402PaymentRequiredResponse,
@@ -82,6 +84,48 @@ export {
 } from "./core";
 
 export type { ExtensionDeclaration } from "./core/agent";
+
+// ===== Algorand Support =====
+export {
+  // Algorand utilities
+  isAlgorandNetwork,
+  getAlgodClient,
+  getIndexerClient,
+  isValidAlgorandAddress,
+  getSuggestedParams,
+  waitForConfirmation,
+  ALGORAND_NETWORKS,
+} from "./core/algorand-utils";
+
+export type { AlgorandNetworkConfig } from "./core/algorand-utils";
+
+export {
+  // Algorand wallet functions
+  accountFromMnemonic,
+  generateAccount,
+  processAlgorandPayment,
+  verifyAlgorandSignature,
+  submitAlgorandPayment,
+} from "./core/algorand-wallet";
+
+export type { AlgorandAccount } from "./core/algorand-wallet";
+
+export {
+  // Algorand facilitator functions
+  verifyAlgorandPayment,
+  settleAlgorandPayment,
+  isOptedIntoASA,
+  getMinimumBalance,
+} from "./core/algorand-facilitator";
+
+export {
+  // NFDomains (Algorand name service) functions
+  resolveNFD,
+  resolveAlgorandAddress,
+  isNFDName,
+  getNFDInfo,
+  reverseResolveNFD,
+} from "./core/nfd-resolver";
 
 // ===== Error Types =====
 export {

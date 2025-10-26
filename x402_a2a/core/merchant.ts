@@ -20,6 +20,8 @@ import {
   SupportedNetworks,
 } from "../types/state";
 import { Price, TokenAmount } from "../types/config";
+import { resolveAlgorandAddress } from "./nfd-resolver";
+import { isAlgorandNetwork } from "./algorand-utils";
 
 interface CreatePaymentRequirementsOptions {
   price: Price;
@@ -40,6 +42,9 @@ const SUPPORTED_NETWORKS: readonly SupportedNetworks[] = [
   "ethereum",
   "polygon",
   "polygon-amoy",
+  "algorand-mainnet",
+  "algorand-testnet",
+  "algorand-betanet",
 ];
 
 function assertSupportedNetwork(
@@ -59,14 +64,21 @@ function processPriceToAtomicAmount(
   price: Price,
   network: SupportedNetworks
 ): { maxAmountRequired: string; assetAddress: string; eip712Domain?: any } {
-  // Default USDC addresses by network
+  // Default USDC addresses/ASA IDs by network
+  // For EVM chains: contract addresses
+  // For Algorand: ASA IDs as strings
   const USDC_ADDRESSES: Record<SupportedNetworks, string> = {
     base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     "base-sepolia": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
     ethereum: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
     polygon: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
     "polygon-amoy": "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
+    "algorand-mainnet": "31566704", // USDC ASA ID on Algorand MainNet
+    "algorand-testnet": "10458941", // USDC ASA ID on Algorand TestNet
+    "algorand-betanet": "10458941", // USDC ASA ID on Algorand BetaNet (placeholder)
   };
+
+  const isAlgorand = network.startsWith("algorand-");
 
   if (typeof price === "string") {
     // Money format (e.g., "$1.00" or "1.00")
@@ -79,10 +91,13 @@ function processPriceToAtomicAmount(
     return {
       maxAmountRequired: atomicAmount,
       assetAddress,
-      eip712Domain: {
-        name: "USDC",
-        version: "2",
-      },
+      // Only include EIP712Domain for EVM chains
+      ...(isAlgorand ? {} : {
+        eip712Domain: {
+          name: "USDC",
+          version: "2",
+        },
+      }),
     };
   } else if (typeof price === "number") {
     // Numeric value (treat as USD)
@@ -92,10 +107,13 @@ function processPriceToAtomicAmount(
     return {
       maxAmountRequired: atomicAmount,
       assetAddress,
-      eip712Domain: {
-        name: "USDC",
-        version: "2",
-      },
+      // Only include EIP712Domain for EVM chains
+      ...(isAlgorand ? {} : {
+        eip712Domain: {
+          name: "USDC",
+          version: "2",
+        },
+      }),
     };
   } else {
     // TokenAmount object
@@ -108,6 +126,7 @@ function processPriceToAtomicAmount(
 
 /**
  * Creates PaymentRequirements for A2A payment requests
+ * Automatically resolves NFD names (.algo) to Algorand addresses
  */
 export async function createPaymentRequirements(
   options: CreatePaymentRequirementsOptions
@@ -127,6 +146,22 @@ export async function createPaymentRequirements(
 
   assertSupportedNetwork(network);
 
+  // Resolve NFD names for Algorand networks
+  let resolvedAddress = payToAddress;
+  if (isAlgorandNetwork(network as SupportedNetworks)) {
+    try {
+      resolvedAddress = await resolveAlgorandAddress(payToAddress, network as SupportedNetworks);
+      // Log if we resolved an NFD name (optional, for debugging)
+      if (resolvedAddress !== payToAddress) {
+        console.log(`Resolved NFD "${payToAddress}" to ${resolvedAddress}`);
+      }
+    } catch (error: any) {
+      throw new Error(
+        `Failed to resolve Algorand address "${payToAddress}": ${error.message}`
+      );
+    }
+  }
+
   const { maxAmountRequired, assetAddress, eip712Domain } =
     processPriceToAtomicAmount(price, network);
 
@@ -134,7 +169,7 @@ export async function createPaymentRequirements(
     scheme,
     network,
     asset: assetAddress,
-    payTo: payToAddress,
+    payTo: resolvedAddress, // Use resolved address
     maxAmountRequired,
     resource,
     description,
