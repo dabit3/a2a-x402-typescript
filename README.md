@@ -42,14 +42,14 @@ throw new x402PaymentRequiredException(
 ```typescript
 import { x402PaymentRequiredException } from 'a2a-x402';
 
-// Request payment on Algorand
+// Request payment on Algorand (supports both addresses and NFD names!)
 throw new x402PaymentRequiredException(
   "Payment required for product",
   {
     scheme: "exact",
     network: "algorand-testnet",
     asset: "10458941", // USDC ASA ID on TestNet
-    payTo: "YOUR_ALGORAND_ADDRESS_HERE",
+    payTo: "alice.algo", // ← Can use NFD name or regular address!
     maxAmountRequired: "1000000", // 1 USDC in atomic units
     resource: "/buy-product",
     description: "Payment for banana",
@@ -116,6 +116,7 @@ const paymentPayload = await processPayment(
   - ASA (Algorand Standard Asset) transfers with ED25519 signatures
   - Native USDC support via ASAs
   - Automatic ASA opt-in handling
+  - **NFDomains support** - Use .algo names instead of addresses!
 
 ## What's included
 
@@ -352,6 +353,35 @@ The library works with any EVM-compatible network:
 - RPC: `https://mainnet.base.org`
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
+
+### NFDomains Support (Algorand)
+
+The library automatically resolves NFDomains (.algo names) to Algorand addresses:
+
+```typescript
+import { createPaymentRequirements, resolveNFD } from 'a2a-x402';
+
+// Automatic resolution in payment requirements
+const requirements = await createPaymentRequirements({
+  payToAddress: "alice.algo", // ← NFD name automatically resolved!
+  network: "algorand-mainnet",
+  price: "$1.00",
+  resource: "/payment"
+});
+// requirements.payTo will contain the resolved Algorand address
+
+// Or manually resolve an NFD name
+const address = await resolveNFD("alice.algo", "algorand-mainnet");
+console.log(address); // → "ABC123...XYZ789"
+
+// Reverse lookup (address → NFD)
+const nfdName = await reverseResolveNFD(address, "algorand-mainnet");
+console.log(nfdName); // → "alice.algo"
+```
+
+**Learn more:**
+- Register your own .algo name: https://app.nf.domains
+- NFDomains Documentation: https://docs.nf.domains
 
 ### Algorand Networks
 

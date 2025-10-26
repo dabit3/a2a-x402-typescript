@@ -34,6 +34,7 @@
     "test:algo:connection": "npx ts-node test-algorand-connection.ts",
     "test:algo:wallet": "npx ts-node test-algorand-wallet.ts",
     "test:algo:payment": "npx ts-node test-algorand-payment.ts",
+    "test:algo:nfd": "npx ts-node test-nfd-resolution.ts",
     "test:algo": "npm run test:algo:connection && npm run test:algo:wallet"
   },
   "keywords": [

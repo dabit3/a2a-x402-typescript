@@ -20,6 +20,8 @@ import {
   SupportedNetworks,
 } from "../types/state";
 import { Price, TokenAmount } from "../types/config";
+import { resolveAlgorandAddress } from "./nfd-resolver";
+import { isAlgorandNetwork } from "./algorand-utils";
 
 interface CreatePaymentRequirementsOptions {
   price: Price;
@@ -124,6 +126,7 @@ function processPriceToAtomicAmount(
 
 /**
  * Creates PaymentRequirements for A2A payment requests
+ * Automatically resolves NFD names (.algo) to Algorand addresses
  */
 export async function createPaymentRequirements(
   options: CreatePaymentRequirementsOptions
@@ -143,6 +146,22 @@ export async function createPaymentRequirements(
 
   assertSupportedNetwork(network);
 
+  // Resolve NFD names for Algorand networks
+  let resolvedAddress = payToAddress;
+  if (isAlgorandNetwork(network as SupportedNetworks)) {
+    try {
+      resolvedAddress = await resolveAlgorandAddress(payToAddress, network as SupportedNetworks);
+      // Log if we resolved an NFD name (optional, for debugging)
+      if (resolvedAddress !== payToAddress) {
+        console.log(`Resolved NFD "${payToAddress}" to ${resolvedAddress}`);
+      }
+    } catch (error: any) {
+      throw new Error(
+        `Failed to resolve Algorand address "${payToAddress}": ${error.message}`
+      );
+    }
+  }
+
   const { maxAmountRequired, assetAddress, eip712Domain } =
     processPriceToAtomicAmount(price, network);
 
@@ -150,7 +169,7 @@ export async function createPaymentRequirements(
     scheme,
     network,
     asset: assetAddress,
-    payTo: payToAddress,
+    payTo: resolvedAddress, // Use resolved address
     maxAmountRequired,
     resource,
     description,

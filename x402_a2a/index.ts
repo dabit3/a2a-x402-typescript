@@ -118,6 +118,15 @@ export {
   getMinimumBalance,
 } from "./core/algorand-facilitator";
 
+export {
+  // NFDomains (Algorand name service) functions
+  resolveNFD,
+  resolveAlgorandAddress,
+  isNFDName,
+  getNFDInfo,
+  reverseResolveNFD,
+} from "./core/nfd-resolver";
+
 // ===== Error Types =====
 export {
   x402Error,

@@ -39,8 +39,8 @@ async function testConnection() {
     const params = await getSuggestedParams('algorand-testnet');
     console.log('✅ Parameters retrieved!');
     console.log(`   Fee: ${params.fee} microALGO`);
-    console.log(`   First valid round: ${params.firstRound}`);
-    console.log(`   Last valid round: ${params.lastRound}`);
+    console.log(`   First valid round: ${(params as any).firstRound || params.firstValid}`);
+    console.log(`   Last valid round: ${(params as any).lastRound || params.lastValid}`);
     console.log(`   Genesis ID: ${params.genesisID}`);
 
     // Test address validation
