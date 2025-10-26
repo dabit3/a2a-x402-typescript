@@ -30,7 +30,11 @@
     "build:types": "tsc --project tsconfig.types.json",
     "build:pkgjson": "echo '{\"type\":\"module\"}' > dist/esm/package.json && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test:algo:connection": "npx ts-node test-algorand-connection.ts",
+    "test:algo:wallet": "npx ts-node test-algorand-wallet.ts",
+    "test:algo:payment": "npx ts-node test-algorand-payment.ts",
+    "test:algo": "npm run test:algo:connection && npm run test:algo:wallet"
   },
   "keywords": [
     "a2a",
