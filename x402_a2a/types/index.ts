@@ -33,6 +33,8 @@ export {
   EIP712Domain,
   EIP3009Authorization,
   ExactPaymentPayload,
+  AlgorandAuthorization,
+  AlgorandPaymentPayload,
   PaymentPayload,
   PaymentRequirements,
   x402PaymentRequiredResponse,

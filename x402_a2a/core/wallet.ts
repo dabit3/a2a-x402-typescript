@@ -24,6 +24,8 @@ import {
   EIP3009Authorization,
   SupportedNetworks,
 } from "../types/state";
+import { isAlgorandNetwork } from "./algorand-utils";
+import { processAlgorandPayment, AlgorandAccount } from "./algorand-wallet";
 
 /**
  * Select payment requirement from accepts array (simple implementation)
@@ -66,7 +68,7 @@ function generateNonce(): string {
  */
 export async function processPaymentRequired(
   paymentRequired: x402PaymentRequiredResponse,
-  wallet: Wallet,
+  wallet: Wallet | AlgorandAccount,
   maxValue?: number
 ): Promise<PaymentPayload> {
   const selectedRequirement = selectPaymentRequirement(
@@ -77,9 +79,33 @@ export async function processPaymentRequired(
 }
 
 /**
- * Create PaymentPayload using EIP-712 signing
+ * Create PaymentPayload using EIP-712 signing (EVM) or ED25519 signing (Algorand)
  */
 export async function processPayment(
+  requirements: PaymentRequirements,
+  wallet: Wallet | AlgorandAccount,
+  maxValue?: number
+): Promise<PaymentPayload> {
+  // Route to Algorand processing if network is Algorand
+  if (isAlgorandNetwork(requirements.network as SupportedNetworks)) {
+    if (!("privateKey" in wallet)) {
+      throw new Error("Algorand network requires AlgorandAccount, not ethers Wallet");
+    }
+    return processAlgorandPayment(requirements, wallet as AlgorandAccount, maxValue);
+  }
+
+  // EVM processing
+  if (!("signTypedData" in wallet)) {
+    throw new Error("EVM network requires ethers Wallet, not AlgorandAccount");
+  }
+
+  return processEVMPayment(requirements, wallet as Wallet, maxValue);
+}
+
+/**
+ * Create PaymentPayload using EIP-712 signing (EVM only)
+ */
+async function processEVMPayment(
   requirements: PaymentRequirements,
   wallet: Wallet,
   maxValue?: number

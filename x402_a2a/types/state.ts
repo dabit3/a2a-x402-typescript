@@ -35,7 +35,15 @@ export class x402Metadata {
   static readonly ERROR_KEY = "x402.payment.error";
 }
 
-export type SupportedNetworks = "base" | "base-sepolia" | "ethereum" | "polygon" | "polygon-amoy";
+export type SupportedNetworks =
+  | "base"
+  | "base-sepolia"
+  | "ethereum"
+  | "polygon"
+  | "polygon-amoy"
+  | "algorand-mainnet"
+  | "algorand-testnet"
+  | "algorand-betanet";
 
 // Core x402 Protocol Types (equivalent to x402.types in Python)
 export interface EIP712Domain {
@@ -59,11 +67,27 @@ export interface ExactPaymentPayload {
   authorization: EIP3009Authorization;
 }
 
+// Algorand-specific types
+export interface AlgorandAuthorization {
+  from: string; // Algorand address (58-char base32)
+  to: string; // Algorand address
+  amount: string; // Amount in microAlgos or ASA units
+  assetId: number; // 0 for ALGO, or ASA ID for tokens
+  validRounds: number; // Transaction validity window
+  note?: string; // Optional transaction note
+}
+
+export interface AlgorandPaymentPayload {
+  signature: string; // Base64-encoded signature
+  authorization: AlgorandAuthorization;
+  txnId?: string; // Transaction ID after submission
+}
+
 export interface PaymentPayload {
   x402Version: number;
   scheme: string;
   network: string;
-  payload: ExactPaymentPayload;
+  payload: ExactPaymentPayload | AlgorandPaymentPayload;
 }
 
 export interface PaymentRequirements {
