@@ -60,7 +60,7 @@ const paymentPayload = await processPayment(
 - **Full TypeScript support** - Complete type definitions and interfaces
 - **Ethereum wallet integration** - Built on ethers.js for signing and verification
 - **Dynamic pricing** - Set prices based on request parameters
-- **Multi-network support** - Works with Base, Base Sepolia, and other EVM chains
+- **Multi-network support** - Works with Base, Base Sepolia, Ink, and other EVM chains
 - **ERC-20 token payments** - Native support for USDC and other tokens
 - **ADK-compatible** - Works seamlessly with [ADK TypeScript](https://github.com/njraladdin/adk-typescript)
 
@@ -281,7 +281,7 @@ npm run dev
 
 ## Supported networks
 
-The library works with any EVM-compatible network. The example agents use:
+The library works with any EVM-compatible network. Built-in support includes:
 
 ### Base Sepolia (testnet)
 - Chain ID: `84532`
@@ -292,11 +292,29 @@ The library works with any EVM-compatible network. The example agents use:
   - ETH: https://www.alchemy.com/faucets/base-sepolia
   - USDC: https://faucet.circle.com/
 
-### Base Mainnet (production)
+### Base Mainnet
 - Chain ID: `8453`
 - RPC: `https://mainnet.base.org`
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
+
+### Ink Mainnet
+- Chain ID: `57073`
+- RPC: `https://rpc-gel.inkonchain.com`
+- USDC: `0x2D270e6886d130D724215A266106e6832161EAEd`
+- Explorer: https://explorer.inkonchain.com
+
+### Ethereum Mainnet
+- Chain ID: `1`
+- USDC: `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48`
+
+### Polygon Mainnet
+- Chain ID: `137`
+- USDC: `0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359`
+
+### Polygon Amoy (testnet)
+- Chain ID: `80002`
+- USDC: `0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582`
 
 ## Security
 
