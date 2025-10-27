@@ -15,18 +15,18 @@
  * Client-side executor for wallet/signing implementations
  */
 
-import { Wallet } from "ethers";
-import { x402BaseExecutor } from "./base";
+import { Wallet } from 'ethers';
+import { x402BaseExecutor } from './base';
 import {
   AgentExecutor,
   RequestContext,
   EventQueue,
   PaymentStatus,
   SettleResponse,
-} from "../types/state";
-import { x402ExtensionConfig } from "../types/config";
-import { processPayment } from "../core/wallet";
-import { x402ErrorCode } from "../types/errors";
+} from '../types/state';
+import { x402ExtensionConfig } from '../types/config';
+import { processPayment } from '../core/wallet';
+import { x402ErrorCode } from '../types/errors';
 
 export class x402ClientExecutor extends x402BaseExecutor {
   private wallet: Wallet;
@@ -46,7 +46,10 @@ export class x402ClientExecutor extends x402BaseExecutor {
     this.autoPay = autoPay;
   }
 
-  async execute(context: RequestContext, eventQueue: EventQueue): Promise<void> {
+  async execute(
+    context: RequestContext,
+    eventQueue: EventQueue
+  ): Promise<void> {
     if (!this.isActive(context)) {
       return this._delegate.execute(context, eventQueue);
     }
@@ -93,7 +96,7 @@ export class x402ClientExecutor extends x402BaseExecutor {
       const error = e as Error;
       const failureResponse: SettleResponse = {
         success: false,
-        network: paymentRequired.accepts[0]?.network || "unknown",
+        network: paymentRequired.accepts[0]?.network || 'unknown',
         errorReason: `Payment failed: ${error.message}`,
       };
       this.utils.recordPaymentFailure(

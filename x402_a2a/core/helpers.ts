@@ -18,10 +18,10 @@
 import {
   x402PaymentRequiredException,
   PaymentRequiredExceptionOptions,
-} from "../types/errors";
-import { PaymentRequirements, SupportedNetworks } from "../types/state";
-import { Price, TokenAmount } from "../types/config";
-import { createPaymentRequirements } from "./merchant";
+} from '../types/errors';
+import { PaymentRequirements, SupportedNetworks } from '../types/state';
+import { Price, TokenAmount } from '../types/config';
+import { createPaymentRequirements } from './merchant';
 
 /**
  * Create a payment required exception for immediate raising
@@ -37,7 +37,7 @@ export async function requirePayment(
  */
 export function requirePaymentChoice(
   paymentOptions: PaymentRequirements[],
-  message: string = "Multiple payment options available"
+  message: string = 'Multiple payment options available'
 ): x402PaymentRequiredException {
   return new x402PaymentRequiredException(message, paymentOptions);
 }
@@ -82,11 +82,11 @@ export async function createTieredPaymentOptions(
   payToAddress: string,
   resource: string,
   tiers?: TierDefinition[],
-  network: SupportedNetworks = "base"
+  network: SupportedNetworks = 'base'
 ): Promise<PaymentRequirements[]> {
   const defaultTiers: TierDefinition[] = [
-    { multiplier: 1, suffix: "basic", description: "Basic service" },
-    { multiplier: 2, suffix: "premium", description: "Premium service" },
+    { multiplier: 1, suffix: 'basic', description: 'Basic service' },
+    { multiplier: 2, suffix: 'premium', description: 'Premium service' },
   ];
 
   const tiersToUse = tiers || defaultTiers;
@@ -97,10 +97,10 @@ export async function createTieredPaymentOptions(
 
     // Calculate tier price
     let tierPrice: Price;
-    if (typeof basePrice === "string" && basePrice.startsWith("$")) {
+    if (typeof basePrice === 'string' && basePrice.startsWith('$')) {
       const baseAmount = parseFloat(basePrice.slice(1));
       tierPrice = `$${(baseAmount * multiplier).toFixed(2)}`;
-    } else if (typeof basePrice === "number") {
+    } else if (typeof basePrice === 'number') {
       tierPrice = basePrice * multiplier;
     } else {
       // TokenAmount - would need to implement multiplication
@@ -131,7 +131,7 @@ export function checkPaymentContext(context: any): string | null {
   if (context?.currentTask) {
     const task = context.currentTask;
     if (task?.status?.message?.metadata) {
-      return task.status.message.metadata["x402.payment.status"] || null;
+      return task.status.message.metadata['x402.payment.status'] || null;
     }
   }
   return null;
@@ -162,8 +162,8 @@ export function smartPaidService(options: PaymentRequiredExceptionOptions) {
       if (context) {
         const paymentStatus = checkPaymentContext(context);
         if (
-          paymentStatus === "payment-completed" ||
-          paymentStatus === "payment-submitted"
+          paymentStatus === 'payment-completed' ||
+          paymentStatus === 'payment-submitted'
         ) {
           // Payment exists, proceed with function
           return originalMethod.apply(this, args);

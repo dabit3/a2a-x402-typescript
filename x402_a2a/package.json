@@ -48,12 +48,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-repo/a2a-x402.git"
+    "url": "https://github.com/dabit3/a2a-x402-typescript.git"
   },
   "bugs": {
-    "url": "https://github.com/your-repo/a2a-x402/issues"
+    "url": "https://github.com/dabit3/a2a-x402-typescript/issues"
   },
-  "homepage": "https://github.com/your-repo/a2a-x402#readme",
+  "homepage": "https://github.com/dabit3/a2a-x402-typescript#readme",
   "engines": {
     "node": ">=18.0.0"
   },

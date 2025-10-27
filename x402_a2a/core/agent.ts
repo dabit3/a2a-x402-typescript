@@ -15,7 +15,7 @@
  * Agent utilities for x402 protocol
  */
 
-import { X402_EXTENSION_URI } from "../types/config";
+import { X402_EXTENSION_URI } from '../types/config';
 
 export interface ExtensionDeclaration {
   uri: string;
@@ -27,7 +27,7 @@ export interface ExtensionDeclaration {
  * Creates extension declaration for AgentCard
  */
 export function getExtensionDeclaration(
-  description: string = "Supports x402 payments",
+  description: string = 'Supports x402 payments',
   required: boolean = true
 ): ExtensionDeclaration {
   return {
@@ -40,8 +40,13 @@ export function getExtensionDeclaration(
 /**
  * Check if x402 extension is activated via HTTP headers
  */
-export function checkExtensionActivation(requestHeaders: Record<string, string>): boolean {
-  const extensions = requestHeaders["x-a2a-extensions"] || requestHeaders["X-A2A-Extensions"] || "";
+export function checkExtensionActivation(
+  requestHeaders: Record<string, string>
+): boolean {
+  const extensions =
+    requestHeaders['x-a2a-extensions'] ||
+    requestHeaders['X-A2A-Extensions'] ||
+    '';
   return extensions.includes(X402_EXTENSION_URI);
 }
 
@@ -51,7 +56,7 @@ export function checkExtensionActivation(requestHeaders: Record<string, string>)
 export function addExtensionActivationHeader(
   responseHeaders: Record<string, string>
 ): Record<string, string> {
-  responseHeaders["X-A2A-Extensions"] = X402_EXTENSION_URI;
+  responseHeaders['X-A2A-Extensions'] = X402_EXTENSION_URI;
   return responseHeaders;
 }
 
@@ -62,7 +67,7 @@ export function createX402AgentCard(
   name: string,
   description: string,
   url: string,
-  version: string = "1.0.0",
+  version: string = '1.0.0',
   skills: any[] = []
 ): any {
   return {
@@ -70,12 +75,15 @@ export function createX402AgentCard(
     description,
     url,
     version,
-    defaultInputModes: ["text", "text/plain"],
-    defaultOutputModes: ["text", "text/plain"],
+    defaultInputModes: ['text', 'text/plain'],
+    defaultOutputModes: ['text', 'text/plain'],
     capabilities: {
       streaming: false,
       extensions: [
-        getExtensionDeclaration("Supports payments using the x402 protocol.", true),
+        getExtensionDeclaration(
+          'Supports payments using the x402 protocol.',
+          true
+        ),
       ],
     },
     skills,

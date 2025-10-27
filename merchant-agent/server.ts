@@ -20,7 +20,11 @@
  */
 
 import { createServer } from 'http';
-import { wrappedMerchantAgent, lastPaymentException, clearLastPaymentException } from './wrapped-agent';
+import {
+  wrappedMerchantAgent,
+  lastPaymentException,
+  clearLastPaymentException,
+} from './wrapped-agent';
 import { MerchantServerExecutor } from './src/executor/MerchantServerExecutor';
 import {
   x402PaymentRequiredException,
@@ -31,10 +35,18 @@ import {
 // Import directly from the compiled files, bypassing package.json exports
 // to avoid path resolution issues in Docker
 const path = require('path');
-const { Runner } = require(path.resolve('/node_modules/adk-typescript/dist/runners'));
-const { InMemorySessionService } = require(path.resolve('/node_modules/adk-typescript/dist/sessions'));
-const { InMemoryArtifactService } = require(path.resolve('/node_modules/adk-typescript/dist/artifacts'));
-const { InMemoryMemoryService } = require(path.resolve('/node_modules/adk-typescript/dist/memory'));
+const { Runner } = require(
+  path.resolve('/node_modules/adk-typescript/dist/runners')
+);
+const { InMemorySessionService } = require(
+  path.resolve('/node_modules/adk-typescript/dist/sessions')
+);
+const { InMemoryArtifactService } = require(
+  path.resolve('/node_modules/adk-typescript/dist/artifacts')
+);
+const { InMemoryMemoryService } = require(
+  path.resolve('/node_modules/adk-typescript/dist/memory')
+);
 
 const PORT = process.env.PORT || 10000;
 const utils = new x402Utils();
@@ -80,7 +92,9 @@ class AgentExecutorAdapter {
 
       // After execution, check if a payment exception was caught
       if (lastPaymentException) {
-        console.log('💳 Found payment exception after execution, re-throwing...');
+        console.log(
+          '💳 Found payment exception after execution, re-throwing...'
+        );
         throw lastPaymentException;
       }
     } catch (error) {
@@ -112,12 +126,14 @@ const server = createServer(async (req, res) => {
   // Health check endpoint
   if (req.method === 'GET' && req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      status: 'ok',
-      service: 'x402-merchant-agent',
-      timestamp: Date.now(),
-      uptime: process.uptime(),
-    }));
+    res.end(
+      JSON.stringify({
+        status: 'ok',
+        service: 'x402-merchant-agent',
+        timestamp: Date.now(),
+        uptime: process.uptime(),
+      })
+    );
     return;
   }
 
@@ -135,7 +151,7 @@ const server = createServer(async (req, res) => {
 
   // Read request body
   let body = '';
-  req.on('data', chunk => body += chunk);
+  req.on('data', chunk => (body += chunk));
 
   req.on('end', async () => {
     try {
@@ -168,7 +184,8 @@ const server = createServer(async (req, res) => {
         // Transform events for ADK response format
         const adkEvents = events.map(e => {
           // Check for payment requirements in the message metadata (x402 format)
-          const paymentReqs = e.status?.message?.metadata?.['x402.payment.required'];
+          const paymentReqs =
+            e.status?.message?.metadata?.['x402.payment.required'];
           if (e.status?.state === 'input-required' && paymentReqs) {
             // Transform x402 payment exception to ADK error event format
             console.log('💳 Transforming payment requirement to ADK format');
@@ -180,9 +197,11 @@ const server = createServer(async (req, res) => {
               },
               content: {
                 role: 'model',
-                parts: [{
-                  text: paymentReqs.error || 'Payment required'
-                }],
+                parts: [
+                  {
+                    text: paymentReqs.error || 'Payment required',
+                  },
+                ],
               },
             };
           }
@@ -218,26 +237,31 @@ const server = createServer(async (req, res) => {
       await paymentExecutor.execute(context, eventQueue);
 
       // Check if any events contain payment requirements
-      const hasPaymentRequired = events.some(e =>
-        e.status?.state === 'payment-required' ||
-        e.status?.paymentRequirements
+      const hasPaymentRequired = events.some(
+        e =>
+          e.status?.state === 'payment-required' ||
+          e.status?.paymentRequirements
       );
 
       // Return response
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        success: true,
-        events,
-        taskId: context.taskId,
-        paymentRequired: hasPaymentRequired,
-      }));
-
+      res.end(
+        JSON.stringify({
+          success: true,
+          events,
+          taskId: context.taskId,
+          paymentRequired: hasPaymentRequired,
+        })
+      );
     } catch (error) {
       console.error('Request error:', error);
       res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        error: error instanceof Error ? error.message : 'Internal server error',
-      }));
+      res.end(
+        JSON.stringify({
+          error:
+            error instanceof Error ? error.message : 'Internal server error',
+        })
+      );
     }
   });
 });

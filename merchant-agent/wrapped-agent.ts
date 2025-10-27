@@ -15,7 +15,7 @@ const originalTools = merchantAgent.tools;
 const wrappedTools = originalTools.map((tool: any) => {
   if (typeof tool === 'function') {
     // Create a wrapper function with the same name
-    const wrappedTool = async function(params: any, context: any) {
+    const wrappedTool = async function (params: any, context: any) {
       try {
         return await tool(params, context);
       } catch (error) {

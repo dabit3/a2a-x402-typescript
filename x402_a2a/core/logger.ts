@@ -15,7 +15,8 @@
  * Simple logger utility that respects X402_DEBUG environment variable
  */
 
-const isDebugEnabled = process.env.X402_DEBUG === 'true' || process.env.X402_DEBUG === '1';
+const isDebugEnabled =
+  process.env.X402_DEBUG === 'true' || process.env.X402_DEBUG === '1';
 
 export const logger = {
   log: (...args: any[]) => {

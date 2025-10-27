@@ -16,26 +16,31 @@
  */
 
 // Re-export TokenAmount from config
-export { TokenAmount } from "./config";
+export { TokenAmount } from './config';
 
 export enum PaymentStatus {
-  PAYMENT_REQUIRED = "payment-required",
-  PAYMENT_SUBMITTED = "payment-submitted",
-  PAYMENT_VERIFIED = "payment-verified",
-  PAYMENT_REJECTED = "payment-rejected",
-  PAYMENT_COMPLETED = "payment-completed",
-  PAYMENT_FAILED = "payment-failed",
+  PAYMENT_REQUIRED = 'payment-required',
+  PAYMENT_SUBMITTED = 'payment-submitted',
+  PAYMENT_VERIFIED = 'payment-verified',
+  PAYMENT_REJECTED = 'payment-rejected',
+  PAYMENT_COMPLETED = 'payment-completed',
+  PAYMENT_FAILED = 'payment-failed',
 }
 
 export class x402Metadata {
-  static readonly STATUS_KEY = "x402.payment.status";
-  static readonly REQUIRED_KEY = "x402.payment.required";
-  static readonly PAYLOAD_KEY = "x402.payment.payload";
-  static readonly RECEIPTS_KEY = "x402.payment.receipts";
-  static readonly ERROR_KEY = "x402.payment.error";
+  static readonly STATUS_KEY = 'x402.payment.status';
+  static readonly REQUIRED_KEY = 'x402.payment.required';
+  static readonly PAYLOAD_KEY = 'x402.payment.payload';
+  static readonly RECEIPTS_KEY = 'x402.payment.receipts';
+  static readonly ERROR_KEY = 'x402.payment.error';
 }
 
-export type SupportedNetworks = "base" | "base-sepolia" | "ethereum" | "polygon" | "polygon-amoy";
+export type SupportedNetworks =
+  | 'base'
+  | 'base-sepolia'
+  | 'ethereum'
+  | 'polygon'
+  | 'polygon-amoy';
 
 // Core x402 Protocol Types (equivalent to x402.types in Python)
 export interface EIP712Domain {
@@ -102,22 +107,22 @@ export interface SettleResponse {
 
 // A2A Types 
 export enum TaskState {
-  SUBMITTED = "submitted",
-  WORKING = "working",
-  INPUT_REQUIRED = "input-required",
-  COMPLETED = "completed",
-  FAILED = "failed",
+  SUBMITTED = 'submitted',
+  WORKING = 'working',
+  INPUT_REQUIRED = 'input-required',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
 }
 
 export interface TextPart {
-  kind: "text";
+  kind: 'text';
   text: string;
 }
 
 export interface Message {
   messageId: string;
   taskId?: string;
-  role: "user" | "agent";
+  role: 'user' | 'agent';
   parts: TextPart[];
   metadata?: Record<string, any>;
 }

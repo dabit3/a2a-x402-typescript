@@ -1,0 +1,64 @@
+{
+  "name": "a2a-x402-typescript",
+  "version": "0.0.4",
+  "description": "TypeScript implementation of the x402 payment protocol extension for A2A communication",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "x402_a2a",
+    "client-agent",
+    "merchant-agent"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "clean": "npm run clean --workspaces",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
+    "type-check": "tsc --noEmit",
+    "docs": "typedoc",
+    "prepare": "husky",
+    "commit": "cz"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "husky": "^9.1.0",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.3",
+    "typedoc": "^0.28.14",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dabit3/a2a-x402-typescript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dabit3/a2a-x402-typescript/issues"
+  },
+  "homepage": "https://github.com/dabit3/a2a-x402-typescript#readme",
+  "license": "Apache-2.0",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}

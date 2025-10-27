@@ -23,10 +23,7 @@
 
 import { LlmAgent as Agent } from 'adk-typescript/agents';
 import { createHash } from 'crypto';
-import {
-  x402PaymentRequiredException,
-  PaymentRequirements,
-} from 'a2a-x402';
+import { x402PaymentRequiredException, PaymentRequirements } from 'a2a-x402';
 
 // --- Merchant Agent Configuration ---
 
@@ -34,12 +31,15 @@ import {
 if (!process.env.MERCHANT_WALLET_ADDRESS) {
   console.error('❌ ERROR: MERCHANT_WALLET_ADDRESS is not set in .env file');
   console.error('   Please add MERCHANT_WALLET_ADDRESS to your .env file');
-  throw new Error('Missing required environment variable: MERCHANT_WALLET_ADDRESS');
+  throw new Error(
+    'Missing required environment variable: MERCHANT_WALLET_ADDRESS'
+  );
 }
 
 const WALLET_ADDRESS: string = process.env.MERCHANT_WALLET_ADDRESS;
-const NETWORK = process.env.PAYMENT_NETWORK || "base-sepolia";
-const USDC_CONTRACT = process.env.USDC_CONTRACT || "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+const NETWORK = process.env.PAYMENT_NETWORK || 'base-sepolia';
+const USDC_CONTRACT =
+  process.env.USDC_CONTRACT || '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 
 console.log(`💼 Merchant Configuration:
   Wallet: ${WALLET_ADDRESS}
@@ -54,7 +54,7 @@ console.log(`💼 Merchant Configuration:
  */
 function getProductPrice(productName: string): string {
   // 1 USDC = 1,000,000 atomic units (USDC has 6 decimals)
-  return "1000000";
+  return '1000000';
 }
 
 // --- Tool Functions ---
@@ -71,8 +71,12 @@ async function getProductDetailsAndRequestPayment(
 
   console.log(`\n🛒 Product Request: ${productName}`);
 
-  if (!productName || typeof productName !== 'string' || productName.trim() === '') {
-    throw new Error("Product name cannot be empty.");
+  if (
+    !productName ||
+    typeof productName !== 'string' ||
+    productName.trim() === ''
+  ) {
+    throw new Error('Product name cannot be empty.');
   }
 
   const price = getProductPrice(productName);
@@ -82,22 +86,22 @@ async function getProductDetailsAndRequestPayment(
 
   // Create payment requirements
   const requirements: PaymentRequirements = {
-    scheme: "exact",
+    scheme: 'exact',
     network: NETWORK as any,
     asset: USDC_CONTRACT,
     payTo: WALLET_ADDRESS,
     maxAmountRequired: price,
     description: `Payment for: ${productName}`,
     resource: `https://example.com/product/${productName}`,
-    mimeType: "application/json",
+    mimeType: 'application/json',
     maxTimeoutSeconds: 1200,
     extra: {
-      name: "USDC",
-      version: "2",
+      name: 'USDC',
+      version: '2',
       product: {
         sku: `${productName}_sku`,
         name: productName,
-        version: "1",
+        version: '1',
       },
     },
   };
@@ -123,17 +127,19 @@ async function checkOrderStatus(
   console.log('\n📦 Checking Order Status...');
 
   return {
-    status: "success",
-    message: "Your order has been confirmed and is being prepared for shipment! 🎉"
+    status: 'success',
+    message:
+      'Your order has been confirmed and is being prepared for shipment! 🎉',
   };
 }
 
 // --- Agent Definition ---
 
 export const merchantAgent = new Agent({
-  name: "x402_merchant_agent",
-  model: "gemini-2.0-flash",
-  description: "A production-ready merchant agent that sells products using the x402 payment protocol.",
+  name: 'x402_merchant_agent',
+  model: 'gemini-2.0-flash',
+  description:
+    'A production-ready merchant agent that sells products using the x402 payment protocol.',
   instruction: `You are a helpful and friendly merchant agent powered by the x402 payment protocol.
 
 **Your Role:**
@@ -159,10 +165,7 @@ export const merchantAgent = new Agent({
 - "How much is a unicorn?" → Call getProductDetailsAndRequestPayment with "unicorn"
 
 ANY product name is valid!`,
-  tools: [
-    getProductDetailsAndRequestPayment,
-    checkOrderStatus,
-  ],
+  tools: [getProductDetailsAndRequestPayment, checkOrderStatus],
 });
 
 // Export as root agent for ADK

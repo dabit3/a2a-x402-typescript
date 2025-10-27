@@ -40,16 +40,22 @@ export class RealFacilitator implements FacilitatorClient {
 
   constructor() {
     // Get RPC URL from environment or use default Base Sepolia RPC
-    const rpcUrl = process.env.BASE_SEPOLIA_RPC_URL ||
-                   'https://base-sepolia.g.alchemy.com/v2/_sTLFEOJwL7dFs2bLmqUo';
+    const rpcUrl =
+      process.env.BASE_SEPOLIA_RPC_URL ||
+      'https://base-sepolia.g.alchemy.com/v2/_sTLFEOJwL7dFs2bLmqUo';
 
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
     // Get merchant private key from environment
     const merchantPrivateKey = process.env.MERCHANT_PRIVATE_KEY;
     if (merchantPrivateKey) {
-      this.merchantAccount = new ethers.Wallet(merchantPrivateKey, this.provider);
-      console.log(`💼 Merchant account loaded: ${this.merchantAccount.address}`);
+      this.merchantAccount = new ethers.Wallet(
+        merchantPrivateKey,
+        this.provider
+      );
+      console.log(
+        `💼 Merchant account loaded: ${this.merchantAccount.address}`
+      );
     } else {
       this.merchantAccount = null;
       console.warn('⚠️  No MERCHANT_PRIVATE_KEY set - settlement will fail');
@@ -70,14 +76,22 @@ export class RealFacilitator implements FacilitatorClient {
       let messageToVerify = '';
 
       // Extract payer address and signature from payload
-      if (payload.payload && typeof payload.payload === 'object' && 'authorization' in payload.payload) {
+      if (
+        payload.payload &&
+        typeof payload.payload === 'object' &&
+        'authorization' in payload.payload
+      ) {
         const exactPayload = payload.payload as ExactPaymentPayload;
         payer = exactPayload.authorization.from;
         authorization = exactPayload.authorization;
         signature = exactPayload.signature;
 
         // Get message from extra data if available
-        if (authorization.extra && typeof authorization.extra === 'object' && 'message' in authorization.extra) {
+        if (
+          authorization.extra &&
+          typeof authorization.extra === 'object' &&
+          'message' in authorization.extra
+        ) {
           messageToVerify = authorization.extra.message as string;
         }
       }
@@ -129,9 +143,10 @@ Amount: ${requirements.maxAmountRequired}
         };
       }
 
-      console.log(`✅ Payment verified successfully. Payer: ${payer}, Balance: ${balance.toString()}`);
+      console.log(
+        `✅ Payment verified successfully. Payer: ${payer}, Balance: ${balance.toString()}`
+      );
       return { isValid: true, payer: payer };
-
     } catch (error) {
       console.error('❌ Verification error:', error);
       return {
@@ -152,7 +167,8 @@ Amount: ${requirements.maxAmountRequired}
       return {
         success: false,
         network: requirements.network,
-        errorReason: 'Merchant account not configured. Set MERCHANT_PRIVATE_KEY environment variable.',
+        errorReason:
+          'Merchant account not configured. Set MERCHANT_PRIVATE_KEY environment variable.',
       };
     }
 
@@ -160,7 +176,11 @@ Amount: ${requirements.maxAmountRequired}
       let payer: string | undefined;
 
       // Extract payer information
-      if (payload.payload && typeof payload.payload === 'object' && 'authorization' in payload.payload) {
+      if (
+        payload.payload &&
+        typeof payload.payload === 'object' &&
+        'authorization' in payload.payload
+      ) {
         const exactPayload = payload.payload as ExactPaymentPayload;
         payer = exactPayload.authorization.from;
       }
@@ -182,7 +202,9 @@ Amount: ${requirements.maxAmountRequired}
 
       const amount = BigInt(requirements.maxAmountRequired);
 
-      console.log(`📤 Executing transferFrom: ${payer} -> ${requirements.payTo}, amount: ${amount.toString()}`);
+      console.log(
+        `📤 Executing transferFrom: ${payer} -> ${requirements.payTo}, amount: ${amount.toString()}`
+      );
 
       // Build the transferFrom transaction
       // Note: This assumes the payer has approved the merchant to spend tokens
@@ -218,15 +240,16 @@ Amount: ${requirements.maxAmountRequired}
           errorReason: errorMsg,
         };
       }
-
     } catch (error) {
       console.error('❌ Settlement error:', error);
 
       // Parse common errors
       let errorReason = error instanceof Error ? error.message : String(error);
 
-      if (errorReason.includes('insufficient allowance') ||
-          errorReason.includes('ERC20: transfer amount exceeds allowance')) {
+      if (
+        errorReason.includes('insufficient allowance') ||
+        errorReason.includes('ERC20: transfer amount exceeds allowance')
+      ) {
         errorReason = `Insufficient token approval. The client must approve the merchant to spend tokens before payment can be settled. Error: ${errorReason}`;
       }
 

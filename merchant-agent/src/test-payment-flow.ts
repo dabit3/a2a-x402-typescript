@@ -48,10 +48,12 @@ class MockAgentExecutor {
       const message: Message = {
         messageId: 'msg-confirm',
         role: 'agent',
-        parts: [{
-          kind: 'text',
-          text: 'Great! Your order for a banana has been confirmed! 🎉 Your product will be shipped soon!'
-        }],
+        parts: [
+          {
+            kind: 'text',
+            text: 'Great! Your order for a banana has been confirmed! 🎉 Your product will be shipped soon!',
+          },
+        ],
       };
 
       await eventQueue.enqueueEvent({
@@ -65,7 +67,7 @@ class MockAgentExecutor {
     }
 
     // Simulate the agent tool being called
-    const productName = "banana";
+    const productName = 'banana';
     const price = getProductPrice(productName);
     const priceUSDC = (parseInt(price) / 1_000_000).toFixed(6);
 
@@ -76,22 +78,22 @@ class MockAgentExecutor {
     const { x402PaymentRequiredException } = await import('a2a-x402');
 
     const requirements: PaymentRequirements = {
-      scheme: "exact",
-      network: "base-sepolia",
-      asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-      payTo: "0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B",
+      scheme: 'exact',
+      network: 'base-sepolia',
+      asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+      payTo: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
       maxAmountRequired: price,
       description: `Payment for: ${productName}`,
       resource: `https://example.com/product/${productName}`,
-      mimeType: "application/json",
+      mimeType: 'application/json',
       maxTimeoutSeconds: 1200,
       extra: {
-        name: "USDC",
-        version: "2",
+        name: 'USDC',
+        version: '2',
         product: {
           sku: `${productName}_sku`,
           name: productName,
-          version: "1",
+          version: '1',
         },
       },
     };
@@ -110,7 +112,7 @@ class MockAgentExecutor {
 function getProductPrice(productName: string): string {
   const hash = createHash('sha256').update(productName.toLowerCase()).digest();
   const hashNumber = BigInt('0x' + hash.toString('hex'));
-  const price = Number(hashNumber % 99900001n + 100000n);
+  const price = Number((hashNumber % 99900001n) + 100000n);
   return price.toString();
 }
 
@@ -120,7 +122,9 @@ class MockEventQueue {
 
   async enqueueEvent(task: Task): Promise<void> {
     this.events.push(task);
-    console.log(`\n📨 Event Enqueued: Task ${task.id} - State: ${task.status.state}`);
+    console.log(
+      `\n📨 Event Enqueued: Task ${task.id} - State: ${task.status.state}`
+    );
     if (task.status.message?.metadata) {
       const status = task.status.message.metadata['x402.payment.status'];
       if (status) {
@@ -224,7 +228,9 @@ async function testPaymentFlow() {
   );
 
   console.log(`   ✅ Payment signed by: ${wallet.address}`);
-  console.log(`   Signature: ${paymentPayload.payload.signature.substring(0, 20)}...`);
+  console.log(
+    `   Signature: ${paymentPayload.payload.signature.substring(0, 20)}...`
+  );
 
   // Step 5: Client submits payment
   console.log('\n📋 Step 5: Client submits payment to merchant');
@@ -274,13 +280,15 @@ async function testPaymentFlow() {
   console.log('\n📊 Event Timeline:');
   eventQueue.getEvents().forEach((event, index) => {
     const status = event.status.message?.metadata?.['x402.payment.status'];
-    console.log(`   ${index + 1}. Task ${event.id} - ${event.status.state} - ${status || 'N/A'}`);
+    console.log(
+      `   ${index + 1}. Task ${event.id} - ${event.status.state} - ${status || 'N/A'}`
+    );
   });
 }
 
 // Run the test
 if (require.main === module) {
-  testPaymentFlow().catch((error) => {
+  testPaymentFlow().catch(error => {
     console.error('\n❌ Test failed with error:', error);
     process.exit(1);
   });
