@@ -298,6 +298,13 @@ The library works with any EVM-compatible network. The example agents use:
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
 - Explorer: https://basescan.org/
 
+### Arc Testnet
+- Chain ID: `5042002`
+- RPC: `https://rpc.testnet.arc.network`
+- USDC: `0x3600000000000000000000000000000000000000`
+- Explorer: https://testnet.arcscan.app/
+- Note: Arc uses USDC as the native gas token. See the [Arc Network docs](https://docs.arc.network/) for more information.
+
 ## Security
 
 ### Best practices

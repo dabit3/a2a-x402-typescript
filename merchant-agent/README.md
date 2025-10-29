@@ -80,6 +80,12 @@ PAYMENT_NETWORK=polygon-amoy
 USDC_CONTRACT=0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582
 ```
 
+**Arc Testnet:**
+```bash
+PAYMENT_NETWORK=arc-testnet
+USDC_CONTRACT=0x3600000000000000000000000000000000000000
+```
+
 ## Production Deployment
 
 ### Running the Server
