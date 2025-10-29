@@ -40,6 +40,7 @@ const SUPPORTED_NETWORKS: readonly SupportedNetworks[] = [
   "ethereum",
   "polygon",
   "polygon-amoy",
+  "arc-testnet",
 ];
 
 function assertSupportedNetwork(
@@ -66,6 +67,7 @@ function processPriceToAtomicAmount(
     ethereum: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
     polygon: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
     "polygon-amoy": "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
+    "arc-testnet": "0x3600000000000000000000000000000000000000",
   };
 
   if (typeof price === "string") {

@@ -35,7 +35,7 @@ export class x402Metadata {
   static readonly ERROR_KEY = "x402.payment.error";
 }
 
-export type SupportedNetworks = "base" | "base-sepolia" | "ethereum" | "polygon" | "polygon-amoy";
+export type SupportedNetworks = "base" | "base-sepolia" | "ethereum" | "polygon" | "polygon-amoy" | "arc-testnet";
 
 // Core x402 Protocol Types (equivalent to x402.types in Python)
 export interface EIP712Domain {

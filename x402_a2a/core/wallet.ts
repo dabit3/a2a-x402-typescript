@@ -167,6 +167,7 @@ function getChainId(network: SupportedNetworks): number {
     ethereum: 1,
     polygon: 137,
     "polygon-amoy": 80002,
+    "arc-testnet": 5042002,
   };
 
   if (!(network in chainIds)) {
