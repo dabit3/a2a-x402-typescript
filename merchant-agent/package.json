@@ -17,6 +17,8 @@
     "prebuild": "npm run clean"
   },
   "dependencies": {
+    "@switchboard-xyz/common": "^5.2.5",
+    "@switchboard-xyz/on-demand": "^3.2.0",
     "a2a-x402": "file:../x402_a2a",
     "adk-typescript": "1.0.3",
     "dotenv": "^17.2.3",

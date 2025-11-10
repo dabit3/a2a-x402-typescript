@@ -1,0 +1,5 @@
+onlyBuiltDependencies:
+  - bufferutil
+  - protobufjs
+  - sqlite3
+  - utf-8-validate
