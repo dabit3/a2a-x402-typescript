@@ -17,6 +17,7 @@
     "prebuild": "npm run clean"
   },
   "dependencies": {
+    "@solana/kit": "^5.0.0",
     "@switchboard-xyz/common": "^5.2.5",
     "@switchboard-xyz/on-demand": "^3.2.0",
     "a2a-x402": "file:../x402_a2a",
