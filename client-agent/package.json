@@ -39,7 +39,8 @@
     "adk-typescript": "^1.0.4",
     "bs58": "latest",
     "dotenv": "^17.2.3",
-    "ethers": "^6.15.0"
+    "ethers": "^6.15.0",
+    "solana-agent-kit": "^2.0.10"
   },
   "devDependencies": {
     "@types/node": "^20.19.24",

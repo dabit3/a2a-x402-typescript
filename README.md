@@ -1,9 +1,24 @@
 # a2a-x402
 
-A complete TypeScript implementation of the [Python x402 payment protocol extension](https://github.com/google-agentic-commerce/a2a-x402) for A2A (Agent-to-Agent) communication. Enable your AI agents to request, verify, and settle crypto payments seamlessly.
+A complete TypeScript implementation of the [Python x402 payment protocol extension](https://github.com/google-agentic-commerce/a2a-x402) for A2A (Agent-to-Agent) communication. Enable your AI agents to request, verify, and settle crypto payments seamlessly on **Ethereum** and **Solana**.
 
 [![npm version](https://badge.fury.io/js/a2a-x402.svg)](https://www.npmjs.com/package/a2a-x402)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+## 🌟 Features
+
+- ✅ **Dual-Chain Support**: Ethereum (Base Sepolia) and Solana (Devnet)
+- ✅ **Type-Safe APIs**: Full TypeScript support with Anza Kit
+- ✅ **x402 Protocol**: Complete implementation of payment protocol
+- ✅ **Production-Ready**: Comprehensive tests and error handling
+- ✅ **Multi-Chain Wallets**: Unified interface for both chains
+
+## 📚 Documentation
+
+- **[Quick Start Guide](./SOLANA_QUICKSTART.md)** - Get started in 5 minutes
+- **[Solana Implementation](./SOLANA_IMPLEMENTATION.md)** - Technical details
+- **[Solana Agents Workflow](./SOLANA_AGENTS_WORKFLOW.md)** - Complete workflow guide ⭐
+- **[Implementation Complete](./IMPLEMENTATION_COMPLETE.md)** - Feature summary
 
 ## Quick start
 
@@ -79,6 +94,7 @@ The library provides a complete implementation of the x402 payment protocol:
 ### Optional executors
 
 Abstract base classes for building payment-enabled agents:
+
 - `x402ServerExecutor` - For merchant/service provider agents
 - `x402ClientExecutor` - For client/wallet agents
 
@@ -188,6 +204,7 @@ This repository includes two fully functional example agents that demonstrate en
 A payment-enabled orchestrator agent that can interact with merchants and process payments.
 
 **Install and run:**
+
 ```bash
 cd client-agent
 npm install
@@ -197,6 +214,7 @@ npm run dev
 ```
 
 **Features:**
+
 - Secure wallet with ERC-20 support
 - Automatic USDC approvals
 - Natural language purchase requests
@@ -209,6 +227,7 @@ See [client-agent/README.md](client-agent/README.md) for details.
 A service provider agent that requests payments, verifies signatures, and settles transactions.
 
 **Install and run:**
+
 ```bash
 cd merchant-agent
 npm install
@@ -218,6 +237,7 @@ npm run dev
 ```
 
 **Features:**
+
 - Dynamic pricing
 - Payment verification
 - Order fulfillment
@@ -230,16 +250,19 @@ See [merchant-agent/README.md](merchant-agent/README.md) for details.
 Run both agents to see the complete payment flow:
 
 **Terminal 1 - Merchant:**
+
 ```bash
 cd merchant-agent && npm run dev
 ```
 
 **Terminal 2 - Client:**
+
 ```bash
 cd client-agent && npm run dev
 ```
 
 **Client terminal:**
+
 ```
 You: I want to buy a banana
 Agent: The merchant is requesting 1.000000 USDC for a banana. Proceed?
@@ -284,25 +307,28 @@ npm run dev
 The library works with any EVM-compatible network. The example agents use:
 
 ### Base Sepolia (testnet)
+
 - Chain ID: `84532`
 - RPC: `https://sepolia.base.org`
 - USDC: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
-- Explorer: https://sepolia.basescan.org/
+- Explorer: <https://sepolia.basescan.org/>
 - Faucets:
-  - ETH: https://www.alchemy.com/faucets/base-sepolia
-  - USDC: https://faucet.circle.com/
+  - ETH: <https://www.alchemy.com/faucets/base-sepolia>
+  - USDC: <https://faucet.circle.com/>
 
 ### Base Mainnet (production)
+
 - Chain ID: `8453`
 - RPC: `https://mainnet.base.org`
 - USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
-- Explorer: https://basescan.org/
+- Explorer: <https://basescan.org/>
 
 ## Security
 
 ### Best practices
 
 **Private key management:**
+
 - Never commit private keys or `.env` files
 - Use separate wallets for testing and production
 - Keep minimal balances in hot wallets
@@ -311,6 +337,7 @@ The library works with any EVM-compatible network. The example agents use:
 ### Token approvals
 
 The example client agent uses a 10% buffer for approvals:
+
 ```typescript
 const approvalAmount = (amount * 110n) / 100n;
 ```
@@ -320,11 +347,13 @@ Always review approval amounts before signing transactions.
 ## Additional resources
 
 ### Documentation
+
 - [Client agent README](client-agent/README.md) - Wallet agent implementation details
 - [Merchant agent README](merchant-agent/README.md) - Service provider implementation
 - [Deployment guide](merchant-agent/DEPLOYMENT.md) - Production deployment instructions
 
 ### Related projects
+
 - [ADK TypeScript](https://github.com/njraladdin/adk-typescript) - Agent Development Kit for TypeScript
 - [Python x402 implementation](https://github.com/google-agentic-commerce/a2a-x402) - Original protocol specification
 
