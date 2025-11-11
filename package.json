@@ -1,0 +1,26 @@
+{
+	"name": "amoca-solana-a2a-x402-typescript",
+	"version": "1.0.0",
+	"description": "Solana Agent-to-Agent x402 Payment Protocol using Anza Kit",
+	"private": true,
+	"workspaces": [
+		"client-agent",
+		"merchant-agent",
+		"x402_a2a"
+	],
+	"scripts": {
+		"install:all": "pnpm install",
+		"build:all": "pnpm -r build",
+		"clean": "pnpm -r clean"
+	},
+	"dependencies": {
+		"@solana/web3.js": "^2.0.0",
+		"@solana/kit": "^2.0.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.3"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	}
+}
