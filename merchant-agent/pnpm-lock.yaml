@@ -51,11 +51,11 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0(typescript@5.9.3)
       '@switchboard-xyz/common':
-        specifier: ^5.2.5
-        version: 5.2.5(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^5.2.9
+        version: 5.2.9(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       '@switchboard-xyz/on-demand':
-        specifier: ^3.2.0
-        version: 3.2.0(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^3.2.2
+        version: 3.2.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       a2a-x402:
         specifier: file:../x402_a2a
         version: file:../x402_a2a(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -66,17 +66,17 @@ importers:
         specifier: ^17.2.3
         version: 17.2.3
       ethers:
-        specifier: ^6.13.0
+        specifier: ^6.15.0
         version: 6.15.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     devDependencies:
       '@types/node':
-        specifier: ^24.6.2
+        specifier: ^24.10.0
         version: 24.10.0
       nodemon:
-        specifier: ^3.0.0
+        specifier: ^3.1.10
         version: 3.1.10
       ts-node:
-        specifier: ^10.9.0
+        specifier: ^10.9.2
         version: 10.9.2(@types/node@24.10.0)(typescript@5.9.3)
       tsconfig-paths:
         specifier: ^4.2.0
@@ -594,12 +594,14 @@ packages:
   '@swc/helpers@0.5.17':
     resolution: {integrity: sha512-5IKx/Y13RsYd+sauPb2x+U/xZikHjolzfuDgTAl/Tdf3Q8rslRvC19NKDLgAJQ6wsqADk10ntlv08nPFw/gO/A==}
 
-  '@switchboard-xyz/common@5.2.5':
-    resolution: {integrity: sha512-aBwPNwuQDsJjCROSM6Esedasa0+SYW3z2TmXe4pN6HalpryxVAfzV5Q6fjgadQP/WhUXBgerPSiLSwpPEMgdvg==}
+  '@switchboard-xyz/common@5.2.9':
+    resolution: {integrity: sha512-D4NTWtzuJXU44ISfTvPd5C0hAgTQ9e7Wbs4BDEr5eJeqfwWZQ+VqPvubXzu0ubhSPZmD7qvG12djzKK4H5yZSg==}
     engines: {node: '>=20'}
+    peerDependencies:
+      zod: ^4.1.12
 
-  '@switchboard-xyz/on-demand@3.2.0':
-    resolution: {integrity: sha512-PycvYN6ZCJxP3q7ZVb+Kg1e1fbz1st1Rq3vPgmhEAJDelkY9wlreDlpvr9tuzQt9jA60Aq+/jg3AW64hSy5xOw==}
+  '@switchboard-xyz/on-demand@3.2.2':
+    resolution: {integrity: sha512-8h2MMmHLfbENJ44QT6oOO0glLRJQFcKLM/P4bgXRvY49iEMvw16N6mIZy0A/809sbPgXTEzw6J2PrMG/hzCrYQ==}
     engines: {node: '>= 18'}
 
   '@tootallnate/once@1.1.2':
@@ -666,9 +668,6 @@ packages:
 
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
-
-  '@zod/core@0.11.6':
-    resolution: {integrity: sha512-03Bv82fFSfjDAvMfdHHdGSS6SOJs0iCcJlWJv1kJHRtoTT02hZpyip/2Lk6oo4l4FtjuwTrsEQTwg/LD8I7dJA==}
 
   a2a-x402@file:../x402_a2a:
     resolution: {directory: ../x402_a2a, type: directory}
@@ -2696,9 +2695,6 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.0.0-beta.20250505T195954:
-    resolution: {integrity: sha512-iB8WvxkobVIXMARvQu20fKvbS7mUTiYRpcD8OQV1xjRhxO0EEpYIRJBk6yfBzHAHEdOSDh3SxDITr5Eajr2vtg==}
-
 snapshots:
 
   '@adraffy/ens-normalize@1.10.1': {}
@@ -3433,7 +3429,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@switchboard-xyz/common@5.2.5(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@switchboard-xyz/common@5.2.9(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)':
     dependencies:
       '@solana/web3.js': 1.98.4(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)
       axios: 1.13.2
@@ -3444,7 +3440,7 @@ snapshots:
       decimal.js: 10.6.0
       js-sha256: 0.11.1
       protobufjs: 7.5.4
-      zod: 4.0.0-beta.20250505T195954
+      zod: 3.25.76
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -3452,11 +3448,11 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@switchboard-xyz/on-demand@3.2.0(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@switchboard-xyz/on-demand@3.2.2(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)':
     dependencies:
       '@coral-xyz/anchor-31': '@coral-xyz/anchor@0.31.1(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)'
       '@isaacs/ttlcache': 1.4.1
-      '@switchboard-xyz/common': 5.2.5(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@switchboard-xyz/common': 5.2.9(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       axios: 1.13.2
       bs58: 6.0.0
       buffer: 6.0.3
@@ -3470,6 +3466,7 @@ snapshots:
       - encoding
       - typescript
       - utf-8-validate
+      - zod
 
   '@tootallnate/once@1.1.2':
     optional: true
@@ -3535,8 +3532,6 @@ snapshots:
   '@types/ws@8.18.1':
     dependencies:
       '@types/node': 24.10.0
-
-  '@zod/core@0.11.6': {}
 
   a2a-x402@file:../x402_a2a(bufferutil@4.0.9)(utf-8-validate@5.0.10):
     dependencies:
@@ -5841,7 +5836,3 @@ snapshots:
       zod: 3.25.76
 
   zod@3.25.76: {}
-
-  zod@4.0.0-beta.20250505T195954:
-    dependencies:
-      '@zod/core': 0.11.6
