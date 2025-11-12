@@ -1,17 +1,17 @@
-# a2a-x402
+# AMOCA Solana A2A x402
 
-A complete TypeScript implementation of the [Python x402 payment protocol extension](https://github.com/google-agentic-commerce/a2a-x402) for A2A (Agent-to-Agent) communication. Enable your AI agents to request, verify, and settle crypto payments seamlessly on **Ethereum** and **Solana**.
+A complete TypeScript implementation of the AMOCA x402 payment protocol for A2A (Agent-to-Agent) communication on Solana. Enable your AI agents to request, verify, and settle crypto payments seamlessly on **Solana**.
 
 [![npm version](https://badge.fury.io/js/a2a-x402.svg)](https://www.npmjs.com/package/a2a-x402)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## 🌟 Features
 
-- ✅ **Dual-Chain Support**: Ethereum (Base Sepolia) and Solana (Devnet)
+- ✅ **Solana Support**: Solana (Devnet and Mainnet)
 - ✅ **Type-Safe APIs**: Full TypeScript support with Anza Kit
-- ✅ **x402 Protocol**: Complete implementation of payment protocol
+- ✅ **AMOCA x402 Protocol**: Complete implementation of payment protocol
 - ✅ **Production-Ready**: Comprehensive tests and error handling
-- ✅ **Multi-Chain Wallets**: Unified interface for both chains
+- ✅ **Solana Wallets**: Unified interface for Solana operations
 
 ## 📚 Documentation
 
@@ -38,10 +38,10 @@ throw new x402PaymentRequiredException(
   "Payment required for product",
   {
     scheme: "exact",
-    network: "base-sepolia",
-    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // USDC
-    payTo: "0xYourWalletAddress",
-    maxAmountRequired: "1000000", // 1 USDC in atomic units
+    network: "solana-devnet",
+    asset: "SOL",
+    payTo: "YourSolanaAddress",
+    maxAmountRequired: "1000000000", // 1 SOL in lamports
     resource: "/buy-product",
     description: "Payment for banana",
     mimeType: "application/json",
@@ -54,9 +54,9 @@ throw new x402PaymentRequiredException(
 
 ```typescript
 import { processPayment, x402Utils } from 'a2a-x402';
-import { Wallet } from 'ethers';
+import { SolanaWallet } from './src/wallet/SolanaWallet';
 
-const wallet = new Wallet(privateKey);
+const wallet = await SolanaWallet.create();
 const utils = new x402Utils();
 
 // Get payment requirements from task
@@ -73,10 +73,10 @@ const paymentPayload = await processPayment(
 
 - **Exception-based payment flow** - Throw exceptions to request payments dynamically
 - **Full TypeScript support** - Complete type definitions and interfaces
-- **Ethereum wallet integration** - Built on ethers.js for signing and verification
+- **Solana wallet integration** - Built on Anza Kit for signing and verification
 - **Dynamic pricing** - Set prices based on request parameters
-- **Multi-network support** - Works with Base, Base Sepolia, and other EVM chains
-- **ERC-20 token payments** - Native support for USDC and other tokens
+- **Solana network support** - Works with Solana Devnet and Mainnet
+- **SOL payments** - Native support for SOL transfers
 - **ADK-compatible** - Works seamlessly with [ADK TypeScript](https://github.com/njraladdin/adk-typescript)
 
 ## What's included
@@ -112,10 +112,10 @@ throw new x402PaymentRequiredException(
   "Payment required",
   {
     scheme: "exact",
-    network: "base-sepolia",
-    asset: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-    payTo: "0xYourAddress",
-    maxAmountRequired: "1000000",
+    network: "solana-devnet",
+    asset: "SOL",
+    payTo: "YourSolanaAddress",
+    maxAmountRequired: "1000000000", // 1 SOL
     resource: "/service",
     description: "Service payment",
     mimeType: "application/json",
@@ -132,13 +132,13 @@ throw new x402PaymentRequiredException(
 
 #### `processPayment()`
 
-Sign a payment with a wallet:
+Sign a payment with a Solana wallet:
 
 ```typescript
 import { processPayment } from 'a2a-x402';
-import { Wallet } from 'ethers';
+import { SolanaWallet } from './src/wallet/SolanaWallet';
 
-const wallet = new Wallet(privateKey);
+const wallet = await SolanaWallet.create();
 const paymentPayload = await processPayment(requirements, wallet);
 ```
 
@@ -201,7 +201,7 @@ This repository includes two fully functional example agents that demonstrate en
 
 ### Client agent
 
-A payment-enabled orchestrator agent that can interact with merchants and process payments.
+A payment-enabled orchestrator agent that can interact with merchants and process SOL payments on Solana.
 
 **Install and run:**
 
@@ -215,8 +215,8 @@ npm run dev
 
 **Features:**
 
-- Secure wallet with ERC-20 support
-- Automatic USDC approvals
+- Secure Solana wallet with SOL support
+- Automatic SOL transfers
 - Natural language purchase requests
 - User confirmation flows
 
@@ -224,7 +224,7 @@ See [client-agent/README.md](client-agent/README.md) for details.
 
 ### Merchant agent
 
-A service provider agent that requests payments, verifies signatures, and settles transactions.
+A service provider agent that requests SOL payments, verifies signatures, and settles transactions on Solana.
 
 **Install and run:**
 
@@ -238,8 +238,8 @@ npm run dev
 
 **Features:**
 
-- Dynamic pricing
-- Payment verification
+- Dynamic pricing in SOL
+- Payment verification on Solana
 - Order fulfillment
 - Secure settlement
 
@@ -264,10 +264,10 @@ cd client-agent && npm run dev
 **Client terminal:**
 
 ```
-You: I want to buy a banana
-Agent: The merchant is requesting 1.000000 USDC for a banana. Proceed?
+You: I want to buy a banana with Solana
+Agent: The merchant is requesting 1.000000 SOL for a banana. Proceed?
 You: yes
-Agent: Payment completed! Transaction: 0x...
+Agent: Payment completed! Transaction: ABC123...
 ```
 
 ## Development
@@ -304,24 +304,20 @@ npm run dev
 
 ## Supported networks
 
-The library works with any EVM-compatible network. The example agents use:
+The library works with Solana networks. The example agents use:
 
-### Base Sepolia (testnet)
+### Solana Devnet (testnet)
 
-- Chain ID: `84532`
-- RPC: `https://sepolia.base.org`
-- USDC: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
-- Explorer: <https://sepolia.basescan.org/>
+- RPC: `https://api.devnet.solana.com`
+- Explorer: <https://explorer.solana.com/?cluster=devnet>
 - Faucets:
-  - ETH: <https://www.alchemy.com/faucets/base-sepolia>
-  - USDC: <https://faucet.circle.com/>
+  - SOL: <https://faucet.solana.com/>
 
-### Base Mainnet (production)
+### Solana Mainnet (production)
 
-- Chain ID: `8453`
-- RPC: `https://mainnet.base.org`
-- USDC: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
-- Explorer: <https://basescan.org/>
+- RPC: `https://api.mainnet-beta.solana.com`
+- Explorer: <https://explorer.solana.com/>
+- Faucets: None (production)
 
 ## Security
 
@@ -334,15 +330,9 @@ The library works with any EVM-compatible network. The example agents use:
 - Keep minimal balances in hot wallets
 - Consider hardware wallets for production
 
-### Token approvals
+### SOL approvals
 
-The example client agent uses a 10% buffer for approvals:
-
-```typescript
-const approvalAmount = (amount * 110n) / 100n;
-```
-
-Always review approval amounts before signing transactions.
+The example client agent uses SOL transfers directly. Always review transaction details before signing.
 
 ## Additional resources
 
@@ -355,7 +345,7 @@ Always review approval amounts before signing transactions.
 ### Related projects
 
 - [ADK TypeScript](https://github.com/njraladdin/adk-typescript) - Agent Development Kit for TypeScript
-- [Python x402 implementation](https://github.com/google-agentic-commerce/a2a-x402) - Original protocol specification
+- [Solana Web3.js](https://github.com/anza-xyz/solana-web3.js) - Official Solana JavaScript SDK
 
 ## License
 
