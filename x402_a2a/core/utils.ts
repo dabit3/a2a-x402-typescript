@@ -19,6 +19,7 @@ import { randomUUID } from "crypto";
 import {
   Task,
   Message,
+  Part,
   PaymentStatus,
   x402Metadata,
   x402PaymentRequiredResponse,
@@ -48,10 +49,11 @@ export function createPaymentSubmissionMessage(
 ): Message {
   const msgId = messageId || randomUUID();
   return {
+    kind: "message" as const,
     messageId: msgId,
     taskId,
-    role: "user",
-    parts: [{ kind: "text", text }],
+    role: "user" as const,
+    parts: [{ kind: "text" as const, text }],
     metadata: {
       [x402Metadata.STATUS_KEY]: PaymentStatus.PAYMENT_SUBMITTED,
       [x402Metadata.PAYLOAD_KEY]: paymentPayload,
@@ -81,8 +83,8 @@ export class x402Utils {
       return null;
     }
 
-    const statusValue = message.metadata[x402Utils.STATUS_KEY];
-    if (statusValue && Object.values(PaymentStatus).includes(statusValue)) {
+    const statusValue = message.metadata[x402Utils.STATUS_KEY] as string | undefined;
+    if (statusValue && (Object.values(PaymentStatus) as string[]).includes(statusValue)) {
       return statusValue as PaymentStatus;
     }
     return null;
@@ -172,6 +174,7 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message",
         messageId: `${task.id}-status`,
         role: "agent",
         parts: [{ kind: "text", text: "Payment is required for this service." }],
@@ -195,6 +198,7 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message",
         messageId: `${task.id}-status`,
         role: "agent",
         parts: [{ kind: "text", text: "Payment verification recorded." }],
@@ -217,6 +221,7 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message",
         messageId: `${task.id}-status`,
         role: "agent",
         parts: [{ kind: "text", text: "Payment completed successfully." }],
@@ -236,7 +241,7 @@ export class x402Utils {
     if (!task.status.message.metadata[x402Utils.RECEIPTS_KEY]) {
       task.status.message.metadata[x402Utils.RECEIPTS_KEY] = [];
     }
-    task.status.message.metadata[x402Utils.RECEIPTS_KEY].push(settleResponse);
+    (task.status.message.metadata[x402Utils.RECEIPTS_KEY] as unknown[]).push(settleResponse);
 
     // Clean up intermediate data
     delete task.status.message.metadata[x402Utils.PAYLOAD_KEY];
@@ -260,6 +265,7 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message",
         messageId: `${task.id}-status`,
         role: "agent",
         parts: [{ kind: "text", text: "Payment failed." }],
@@ -280,7 +286,7 @@ export class x402Utils {
     if (!task.status.message.metadata[x402Utils.RECEIPTS_KEY]) {
       task.status.message.metadata[x402Utils.RECEIPTS_KEY] = [];
     }
-    task.status.message.metadata[x402Utils.RECEIPTS_KEY].push(settleResponse);
+    (task.status.message.metadata[x402Utils.RECEIPTS_KEY] as unknown[]).push(settleResponse);
 
     // Clean up intermediate data
     delete task.status.message.metadata[x402Utils.PAYLOAD_KEY];
@@ -293,7 +299,7 @@ export class x402Utils {
       return [];
     }
 
-    const receiptsData = message.metadata[x402Utils.RECEIPTS_KEY] || [];
+    const receiptsData = (message.metadata[x402Utils.RECEIPTS_KEY] || []) as unknown[];
     const receipts: SettleResponse[] = [];
 
     for (const receiptData of receiptsData) {
@@ -326,6 +332,7 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message",
         messageId: `${task.id}-status`,
         role: "agent",
         parts: [{ kind: "text", text: "Payment authorization provided" }],

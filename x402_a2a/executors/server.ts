@@ -296,8 +296,9 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
       }
 
       task = {
+        kind: "task",
         id: context.taskId,
-        contextId: context.contextId,
+        contextId: context.contextId || context.taskId,
         status: { state: TaskState.INPUT_REQUIRED },
         metadata: {},
       };

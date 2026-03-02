@@ -17,10 +17,140 @@
 
 import { X402_EXTENSION_URI } from "../types/config";
 
-export interface ExtensionDeclaration {
+/**
+ * A declaration of a protocol extension supported by an Agent.
+ * Aligned with A2A v0.3.0 AgentExtension.
+ */
+export interface AgentExtension {
   uri: string;
+  description?: string;
+  required?: boolean;
+  params?: Record<string, unknown>;
+}
+
+/** @deprecated Use AgentExtension instead */
+export type ExtensionDeclaration = AgentExtension;
+
+/**
+ * Represents a distinct capability or function that an agent can perform.
+ * A2A v0.3.0 AgentSkill.
+ */
+export interface AgentSkill {
+  id: string;
+  name: string;
   description: string;
-  required: boolean;
+  tags: string[];
+  examples?: string[];
+  inputModes?: string[];
+  outputModes?: string[];
+  security?: Record<string, string[]>[];
+}
+
+/**
+ * Defines optional capabilities supported by an agent.
+ * A2A v0.3.0 AgentCapabilities.
+ */
+export interface AgentCapabilities {
+  streaming?: boolean;
+  pushNotifications?: boolean;
+  stateTransitionHistory?: boolean;
+  extensions?: AgentExtension[];
+}
+
+/**
+ * Information about the agent's service provider.
+ */
+export interface AgentProvider {
+  organization: string;
+  url: string;
+}
+
+/**
+ * Declares a combination of a target URL and a transport protocol.
+ */
+export interface AgentInterface {
+  transport: string;
+  url: string;
+}
+
+/**
+ * Security scheme types following OpenAPI 3.0 Security Scheme Object.
+ */
+export type SecurityScheme =
+  | APIKeySecurityScheme
+  | HTTPAuthSecurityScheme
+  | OAuth2SecurityScheme
+  | OpenIdConnectSecurityScheme
+  | MutualTLSSecurityScheme;
+
+export interface APIKeySecurityScheme {
+  type: "apiKey";
+  name: string;
+  in: "cookie" | "header" | "query";
+  description?: string;
+}
+
+export interface HTTPAuthSecurityScheme {
+  type: "http";
+  scheme: string;
+  bearerFormat?: string;
+  description?: string;
+}
+
+export interface OAuth2SecurityScheme {
+  type: "oauth2";
+  flows: OAuthFlows;
+  oauth2MetadataUrl?: string;
+  description?: string;
+}
+
+export interface OAuthFlows {
+  authorizationCode?: OAuthFlow;
+  clientCredentials?: OAuthFlow;
+  implicit?: OAuthFlow;
+  password?: OAuthFlow;
+}
+
+export interface OAuthFlow {
+  authorizationUrl?: string;
+  tokenUrl?: string;
+  refreshUrl?: string;
+  scopes: Record<string, string>;
+}
+
+export interface OpenIdConnectSecurityScheme {
+  type: "openIdConnect";
+  openIdConnectUrl: string;
+  description?: string;
+}
+
+export interface MutualTLSSecurityScheme {
+  type: "mutualTLS";
+  description?: string;
+}
+
+/**
+ * The AgentCard is a self-describing manifest for an agent.
+ * Updated to A2A v0.3.0 specification.
+ */
+export interface AgentCard {
+  name: string;
+  description: string;
+  url: string;
+  version: string;
+  protocolVersion: string;
+  defaultInputModes: string[];
+  defaultOutputModes: string[];
+  capabilities: AgentCapabilities;
+  skills: AgentSkill[];
+  provider?: AgentProvider;
+  documentationUrl?: string;
+  iconUrl?: string;
+  preferredTransport?: string;
+  additionalInterfaces?: AgentInterface[];
+  securitySchemes?: Record<string, SecurityScheme>;
+  security?: Record<string, string[]>[];
+  supportsAuthenticatedExtendedCard?: boolean;
 }
 
 /**
@@ -29,7 +159,7 @@ export interface ExtensionDeclaration {
 export function getExtensionDeclaration(
   description: string = "Supports x402 payments",
   required: boolean = true
-): ExtensionDeclaration {
+): AgentExtension {
   return {
     uri: X402_EXTENSION_URI,
     description,
@@ -56,28 +186,53 @@ export function addExtensionActivationHeader(
 }
 
 /**
- * Create x402-enabled agent card
+ * The current A2A protocol version supported by this library.
+ */
+export const A2A_PROTOCOL_VERSION = "0.3.0";
+
+/**
+ * Create x402-enabled agent card conforming to A2A v0.3.0
  */
 export function createX402AgentCard(
   name: string,
   description: string,
   url: string,
   version: string = "1.0.0",
-  skills: any[] = []
-): any {
+  skills: AgentSkill[] = [],
+  options?: {
+    protocolVersion?: string;
+    provider?: AgentProvider;
+    preferredTransport?: string;
+    additionalInterfaces?: AgentInterface[];
+    securitySchemes?: Record<string, SecurityScheme>;
+    security?: Record<string, string[]>[];
+    supportsAuthenticatedExtendedCard?: boolean;
+  }
+): AgentCard {
   return {
     name,
     description,
     url,
     version,
+    protocolVersion: options?.protocolVersion ?? A2A_PROTOCOL_VERSION,
     defaultInputModes: ["text", "text/plain"],
     defaultOutputModes: ["text", "text/plain"],
     capabilities: {
       streaming: false,
+      pushNotifications: false,
+      stateTransitionHistory: false,
       extensions: [
         getExtensionDeclaration("Supports payments using the x402 protocol.", true),
       ],
     },
     skills,
+    ...(options?.provider && { provider: options.provider }),
+    ...(options?.preferredTransport && { preferredTransport: options.preferredTransport }),
+    ...(options?.additionalInterfaces && { additionalInterfaces: options.additionalInterfaces }),
+    ...(options?.securitySchemes && { securitySchemes: options.securitySchemes }),
+    ...(options?.security && { security: options.security }),
+    ...(options?.supportsAuthenticatedExtendedCard && {
+      supportsAuthenticatedExtendedCard: options.supportsAuthenticatedExtendedCard,
+    }),
   };
 }

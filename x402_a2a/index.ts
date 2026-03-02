@@ -33,8 +33,14 @@ export type {
   Price,
   x402ExtensionConfig,
   x402ServerConfig,
-  // A2A types
+  // A2A types (v0.3.0)
   TextPart,
+  FilePart,
+  FileContent,
+  FileWithUri,
+  DataPart,
+  Part,
+  Artifact,
   Message,
   TaskStatus,
   Task,
@@ -74,14 +80,31 @@ export {
   smartPaidService,
   createTieredPaymentOptions,
   checkPaymentContext,
-  // Agent utilities
+  // Agent utilities (v0.3.0)
   getExtensionDeclaration,
   checkExtensionActivation,
   addExtensionActivationHeader,
   createX402AgentCard,
+  A2A_PROTOCOL_VERSION,
 } from "./core";
 
-export type { ExtensionDeclaration } from "./core/agent";
+export type {
+  ExtensionDeclaration,
+  AgentExtension,
+  AgentSkill,
+  AgentCapabilities,
+  AgentProvider,
+  AgentInterface,
+  AgentCard,
+  SecurityScheme,
+  APIKeySecurityScheme,
+  HTTPAuthSecurityScheme,
+  OAuth2SecurityScheme,
+  OAuthFlows,
+  OAuthFlow,
+  OpenIdConnectSecurityScheme,
+  MutualTLSSecurityScheme,
+} from "./core/agent";
 
 // ===== Error Types =====
 export {

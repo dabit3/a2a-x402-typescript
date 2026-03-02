@@ -106,33 +106,80 @@ export enum TaskState {
   WORKING = "working",
   INPUT_REQUIRED = "input-required",
   COMPLETED = "completed",
+  CANCELED = "canceled",
   FAILED = "failed",
+  REJECTED = "rejected",
+  AUTH_REQUIRED = "auth-required",
+  UNKNOWN = "unknown",
 }
 
 export interface TextPart {
   kind: "text";
   text: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FilePart {
+  kind: "file";
+  file: FileContent | FileWithUri;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FileContent {
+  mimeType?: string;
+  name?: string;
+  bytes: string;
+}
+
+export interface FileWithUri {
+  mimeType?: string;
+  name?: string;
+  uri: string;
+}
+
+export interface DataPart {
+  kind: "data";
+  data: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export type Part = TextPart | FilePart | DataPart;
+
+export interface Artifact {
+  artifactId: string;
+  name?: string;
+  description?: string;
+  parts: Part[];
+  metadata?: Record<string, unknown>;
+  extensions?: string[];
 }
 
 export interface Message {
+  kind: "message";
   messageId: string;
   taskId?: string;
+  contextId?: string;
   role: "user" | "agent";
-  parts: TextPart[];
-  metadata?: Record<string, any>;
+  parts: Part[];
+  metadata?: Record<string, unknown>;
+  extensions?: string[];
+  referenceTaskIds?: string[];
 }
 
 export interface TaskStatus {
   state: TaskState;
   message?: Message;
+  timestamp?: string;
 }
 
 export interface Task {
+  kind: "task";
   id: string;
-  contextId?: string;
+  contextId: string;
   status: TaskStatus;
-  metadata?: Record<string, any>;
-  artifacts?: any[];
+  metadata?: Record<string, unknown>;
+  artifacts?: Artifact[];
+  history?: Message[];
 }
 
 export interface RequestContext {
