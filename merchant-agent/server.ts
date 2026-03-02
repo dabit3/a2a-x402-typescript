@@ -26,7 +26,6 @@ import {
   x402PaymentRequiredException,
   PaymentStatus,
   x402Utils,
-  TaskState,
 } from 'a2a-x402';
 // Import directly from the compiled files, bypassing package.json exports
 // to avoid path resolution issues in Docker

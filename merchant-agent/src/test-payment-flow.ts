@@ -27,9 +27,11 @@ import {
   x402Utils,
   processPayment,
   createPaymentSubmissionMessage,
+  TaskStateValues,
+} from 'a2a-x402';
+import type {
   PaymentRequirements,
   Task,
-  TaskState,
   Message,
 } from 'a2a-x402';
 import { MerchantServerExecutor } from './executor/MerchantServerExecutor';
@@ -46,6 +48,7 @@ class MockAgentExecutor {
     if (this.paymentVerified) {
       console.log('   ✅ Payment verified! Confirming order...');
       const message: Message = {
+        kind: 'message',
         messageId: 'msg-confirm',
         role: 'agent',
         parts: [{
@@ -55,9 +58,11 @@ class MockAgentExecutor {
       };
 
       await eventQueue.enqueueEvent({
+        kind: 'task',
         id: context.taskId,
+        contextId: context.contextId || context.taskId,
         status: {
-          state: TaskState.COMPLETED,
+          state: TaskStateValues.COMPLETED,
           message,
         },
       });
@@ -182,6 +187,7 @@ async function testPaymentFlow() {
     taskId,
     contextId: 'test-context-123',
     message: {
+      kind: 'message',
       messageId: 'msg-1',
       role: 'user',
       parts: [{ kind: 'text', text: 'I want to buy a banana' }],

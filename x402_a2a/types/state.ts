@@ -12,11 +12,68 @@
 // limitations under the License.
 
 /**
- * Payment state definitions, metadata keys, and state management types
+ * Payment state definitions, metadata keys, and state management types.
+ *
+ * A2A protocol types (Message, Task, TaskState, TaskStatus, TextPart, Part,
+ * AgentCard) are now sourced from the official @a2a-js/sdk package (v0.3.x,
+ * implementing A2A Protocol Specification v0.3.0).
  */
 
 // Re-export TokenAmount from config
 export { TokenAmount } from "./config";
+
+// ===== Official A2A Protocol Types from @a2a-js/sdk =====
+import type {
+  Message as A2AMessage,
+  Task as A2ATask,
+  TaskState as A2ATaskState,
+  TaskStatus as A2ATaskStatus,
+  TextPart as A2ATextPart,
+  Part as A2APart,
+  AgentCard as A2AAgentCard,
+  AgentCapabilities as A2AAgentCapabilities,
+  AgentSkill as A2AAgentSkill,
+  AgentExtension as A2AAgentExtension,
+  TaskStatusUpdateEvent as A2ATaskStatusUpdateEvent,
+  TaskArtifactUpdateEvent as A2ATaskArtifactUpdateEvent,
+  FilePart as A2AFilePart,
+  DataPart as A2ADataPart,
+  Artifact as A2AArtifact,
+} from "@a2a-js/sdk";
+
+export type Message = A2AMessage;
+export type Task = A2ATask;
+export type TaskState = A2ATaskState;
+export type TaskStatus = A2ATaskStatus;
+export type TextPart = A2ATextPart;
+export type Part = A2APart;
+export type AgentCard = A2AAgentCard;
+export type AgentCapabilities = A2AAgentCapabilities;
+export type AgentSkill = A2AAgentSkill;
+export type AgentExtension = A2AAgentExtension;
+export type TaskStatusUpdateEvent = A2ATaskStatusUpdateEvent;
+export type TaskArtifactUpdateEvent = A2ATaskArtifactUpdateEvent;
+export type FilePart = A2AFilePart;
+export type DataPart = A2ADataPart;
+export type Artifact = A2AArtifact;
+
+// ===== Backward-compatible TaskState constants =====
+// The official SDK defines TaskState as a string literal union type.
+// This object provides named constants for backward compatibility with
+// code that used the old enum pattern (e.g. TaskStateValues.SUBMITTED).
+export const TaskStateValues = {
+  SUBMITTED: "submitted" as const,
+  WORKING: "working" as const,
+  INPUT_REQUIRED: "input-required" as const,
+  COMPLETED: "completed" as const,
+  CANCELED: "canceled" as const,
+  FAILED: "failed" as const,
+  REJECTED: "rejected" as const,
+  AUTH_REQUIRED: "auth-required" as const,
+  UNKNOWN: "unknown" as const,
+};
+
+// ===== x402 Payment-Specific Types =====
 
 export enum PaymentStatus {
   PAYMENT_REQUIRED = "payment-required",
@@ -100,55 +157,34 @@ export interface SettleResponse {
   errorReason?: string;
 }
 
-// A2A Types 
-export enum TaskState {
-  SUBMITTED = "submitted",
-  WORKING = "working",
-  INPUT_REQUIRED = "input-required",
-  COMPLETED = "completed",
-  FAILED = "failed",
-}
+// ===== x402 Execution Types =====
+// These are x402-specific execution interfaces used by the x402 executor
+// layer. They are intentionally separate from the @a2a-js/sdk server types
+// (AgentExecutor, RequestContext, ExecutionEventBus) to maintain the x402
+// payment middleware pattern.
 
-export interface TextPart {
-  kind: "text";
-  text: string;
-}
-
-export interface Message {
-  messageId: string;
-  taskId?: string;
-  role: "user" | "agent";
-  parts: TextPart[];
-  metadata?: Record<string, any>;
-}
-
-export interface TaskStatus {
-  state: TaskState;
-  message?: Message;
-}
-
-export interface Task {
-  id: string;
-  contextId?: string;
-  status: TaskStatus;
-  metadata?: Record<string, any>;
-  artifacts?: any[];
-}
-
-export interface RequestContext {
+export interface x402RequestContext {
   taskId: string;
   contextId?: string;
   currentTask?: Task;
   message: Message;
 }
 
-export interface EventQueue {
+export interface x402EventQueue {
   enqueueEvent(event: Task): Promise<void>;
 }
 
-export interface AgentExecutor {
-  execute(context: RequestContext, eventQueue: EventQueue): Promise<void>;
+export interface x402AgentExecutor {
+  execute(context: x402RequestContext, eventQueue: x402EventQueue): Promise<void>;
 }
+
+// Backward-compatible aliases
+/** @deprecated Use x402RequestContext instead */
+export type RequestContext = x402RequestContext;
+/** @deprecated Use x402EventQueue instead */
+export type EventQueue = x402EventQueue;
+/** @deprecated Use x402AgentExecutor instead */
+export type AgentExecutor = x402AgentExecutor;
 
 // Facilitator Types
 export interface FacilitatorConfig {

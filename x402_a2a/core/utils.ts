@@ -16,17 +16,16 @@
  */
 
 import { randomUUID } from "crypto";
-import {
+import type {
   Task,
   Message,
-  PaymentStatus,
-  x402Metadata,
   x402PaymentRequiredResponse,
   PaymentPayload,
   SettleResponse,
-  TaskState,
-  TaskStatus,
-  TextPart,
+} from "../types/state";
+import {
+  PaymentStatus,
+  x402Metadata,
 } from "../types/state";
 import { logger } from "./logger";
 
@@ -48,10 +47,11 @@ export function createPaymentSubmissionMessage(
 ): Message {
   const msgId = messageId || randomUUID();
   return {
+    kind: "message" as const,
     messageId: msgId,
     taskId,
-    role: "user",
-    parts: [{ kind: "text", text }],
+    role: "user" as const,
+    parts: [{ kind: "text" as const, text }],
     metadata: {
       [x402Metadata.STATUS_KEY]: PaymentStatus.PAYMENT_SUBMITTED,
       [x402Metadata.PAYLOAD_KEY]: paymentPayload,
@@ -81,8 +81,8 @@ export class x402Utils {
       return null;
     }
 
-    const statusValue = message.metadata[x402Utils.STATUS_KEY];
-    if (statusValue && Object.values(PaymentStatus).includes(statusValue)) {
+    const statusValue = message.metadata[x402Utils.STATUS_KEY] as string | undefined;
+    if (statusValue && (Object.values(PaymentStatus) as string[]).includes(statusValue)) {
       return statusValue as PaymentStatus;
     }
     return null;
@@ -164,17 +164,18 @@ export class x402Utils {
   ): Task {
     // Set task status to input-required as per A2A spec
     if (task.status) {
-      task.status.state = TaskState.INPUT_REQUIRED;
+      task.status.state = "input-required";
     } else {
-      task.status = { state: TaskState.INPUT_REQUIRED };
+      task.status = { state: "input-required" };
     }
 
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message" as const,
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment is required for this service." }],
+        role: "agent" as const,
+        parts: [{ kind: "text" as const, text: "Payment is required for this service." }],
         metadata: {},
       };
     }
@@ -195,9 +196,10 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message" as const,
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment verification recorded." }],
+        role: "agent" as const,
+        parts: [{ kind: "text" as const, text: "Payment verification recorded." }],
         metadata: {},
       };
     }
@@ -217,9 +219,10 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message" as const,
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment completed successfully." }],
+        role: "agent" as const,
+        parts: [{ kind: "text" as const, text: "Payment completed successfully." }],
         metadata: {},
       };
     }
@@ -236,7 +239,7 @@ export class x402Utils {
     if (!task.status.message.metadata[x402Utils.RECEIPTS_KEY]) {
       task.status.message.metadata[x402Utils.RECEIPTS_KEY] = [];
     }
-    task.status.message.metadata[x402Utils.RECEIPTS_KEY].push(settleResponse);
+    (task.status.message.metadata[x402Utils.RECEIPTS_KEY] as SettleResponse[]).push(settleResponse);
 
     // Clean up intermediate data
     delete task.status.message.metadata[x402Utils.PAYLOAD_KEY];
@@ -252,17 +255,18 @@ export class x402Utils {
   ): Task {
     // Per AP2/A2A guidance, keep the task in input-required so the client can retry
     if (!task.status) {
-      task.status = { state: TaskState.INPUT_REQUIRED };
+      task.status = { state: "input-required" };
     } else {
-      task.status.state = TaskState.INPUT_REQUIRED;
+      task.status.state = "input-required";
     }
 
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message" as const,
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment failed." }],
+        role: "agent" as const,
+        parts: [{ kind: "text" as const, text: "Payment failed." }],
         metadata: {},
       };
     }
@@ -280,7 +284,7 @@ export class x402Utils {
     if (!task.status.message.metadata[x402Utils.RECEIPTS_KEY]) {
       task.status.message.metadata[x402Utils.RECEIPTS_KEY] = [];
     }
-    task.status.message.metadata[x402Utils.RECEIPTS_KEY].push(settleResponse);
+    (task.status.message.metadata[x402Utils.RECEIPTS_KEY] as SettleResponse[]).push(settleResponse);
 
     // Clean up intermediate data
     delete task.status.message.metadata[x402Utils.PAYLOAD_KEY];
@@ -293,7 +297,7 @@ export class x402Utils {
       return [];
     }
 
-    const receiptsData = message.metadata[x402Utils.RECEIPTS_KEY] || [];
+    const receiptsData = (message.metadata[x402Utils.RECEIPTS_KEY] || []) as SettleResponse[];
     const receipts: SettleResponse[] = [];
 
     for (const receiptData of receiptsData) {
@@ -326,9 +330,10 @@ export class x402Utils {
     // Ensure task has a status message for metadata
     if (!task.status.message) {
       task.status.message = {
+        kind: "message" as const,
         messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment authorization provided" }],
+        role: "agent" as const,
+        parts: [{ kind: "text" as const, text: "Payment authorization provided" }],
         metadata: {},
       };
     }

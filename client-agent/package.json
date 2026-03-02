@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "a2a-x402": "file:../x402_a2a",
-    "adk-typescript": "^1.0.3",
+    "adk-typescript": "^1.0.4",
     "dotenv": "^17.2.3",
     "ethers": "^6.13.0"
   },

@@ -17,12 +17,14 @@
 
 import { Wallet } from "ethers";
 import { x402BaseExecutor } from "./base";
-import {
+import type {
   AgentExecutor,
   RequestContext,
   EventQueue,
-  PaymentStatus,
   SettleResponse,
+} from "../types/state";
+import {
+  PaymentStatus,
 } from "../types/state";
 import { x402ExtensionConfig } from "../types/config";
 import { processPayment } from "../core/wallet";

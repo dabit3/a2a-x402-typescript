@@ -15,10 +15,28 @@
  * x402_a2a - x402 Payment Protocol Extension for A2A (TypeScript)
  */
 
-// ===== Core x402 Protocol Types (from types) =====
+// ===== A2A Protocol Types from @a2a-js/sdk =====
 export type {
-  // State types
-  PaymentStatus,
+  Message,
+  Task,
+  TaskState,
+  TaskStatus,
+  TextPart,
+  Part,
+  AgentCard,
+  AgentCapabilities,
+  AgentSkill,
+  AgentExtension,
+  TaskStatusUpdateEvent,
+  TaskArtifactUpdateEvent,
+  FilePart,
+  DataPart,
+  Artifact,
+} from "./types";
+
+// ===== x402 Protocol Types =====
+export type {
+  // Payment types
   SupportedNetworks,
   EIP712Domain,
   EIP3009Authorization,
@@ -33,19 +51,21 @@ export type {
   Price,
   x402ExtensionConfig,
   x402ServerConfig,
-  // A2A types
-  TextPart,
-  Message,
-  TaskStatus,
-  Task,
+  // x402 execution types
+  x402RequestContext,
+  x402EventQueue,
+  x402AgentExecutor,
+  // Backward-compatible aliases
   RequestContext,
   EventQueue,
   AgentExecutor,
+  // Facilitator types
   FacilitatorConfig,
   FacilitatorClient,
 } from "./types";
 
-export { x402Metadata, TaskState } from "./types/state";
+export { x402Metadata, TaskStateValues } from "./types/state";
+export { PaymentStatus } from "./types/state";
 
 // ===== Extension Constants =====
 export { X402_EXTENSION_URI, DEFAULT_X402_EXTENSION_CONFIG } from "./types/config";

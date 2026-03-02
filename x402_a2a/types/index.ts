@@ -25,10 +25,33 @@ export {
   x402ServerConfig,
 } from "./config";
 
-// State types
+// State types – A2A protocol types from @a2a-js/sdk
+export type {
+  Message,
+  Task,
+  TaskState,
+  TaskStatus,
+  TextPart,
+  Part,
+  AgentCard,
+  AgentCapabilities,
+  AgentSkill,
+  AgentExtension,
+  TaskStatusUpdateEvent,
+  TaskArtifactUpdateEvent,
+  FilePart,
+  DataPart,
+  Artifact,
+} from "./state";
+
+// State types – x402-specific
 export {
+  TaskStateValues,
   PaymentStatus,
   x402Metadata,
+} from "./state";
+
+export type {
   SupportedNetworks,
   EIP712Domain,
   EIP3009Authorization,
@@ -38,14 +61,15 @@ export {
   x402PaymentRequiredResponse,
   VerifyResponse,
   SettleResponse,
-  TaskState,
-  TextPart,
-  Message,
-  TaskStatus,
-  Task,
+  // x402 execution types
+  x402RequestContext,
+  x402EventQueue,
+  x402AgentExecutor,
+  // Backward-compatible aliases
   RequestContext,
   EventQueue,
   AgentExecutor,
+  // Facilitator types
   FacilitatorConfig,
   FacilitatorClient,
 } from "./state";
@@ -58,7 +82,10 @@ export {
   PaymentError,
   StateError,
   x402PaymentRequiredException,
-  PaymentRequiredExceptionOptions,
   x402ErrorCode,
   mapErrorToCode,
+} from "./errors";
+
+export type {
+  PaymentRequiredExceptionOptions,
 } from "./errors";

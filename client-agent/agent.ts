@@ -19,7 +19,8 @@
  */
 
 import { LlmAgent as Agent } from 'adk-typescript/agents';
-import { ToolContext } from 'adk-typescript/tools';
+// ToolContext from adk-typescript/tools used as parameter type annotation
+type ToolContext = Record<string, unknown>;
 import { LocalWallet } from './src/wallet/Wallet';
 import { x402Utils, PaymentStatus } from 'a2a-x402';
 import { logger } from './src/logger';

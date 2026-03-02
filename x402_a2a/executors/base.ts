@@ -15,7 +15,7 @@
  * Base executor for x402 payment middleware
  */
 
-import {
+import type {
   AgentExecutor,
   RequestContext,
   EventQueue,

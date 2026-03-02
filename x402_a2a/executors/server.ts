@@ -16,19 +16,19 @@
  */
 
 import { x402BaseExecutor } from "./base";
-import {
-  AgentExecutor,
+import type {
   RequestContext,
   EventQueue,
-  PaymentStatus,
   PaymentRequirements,
   SettleResponse,
   Task,
-  TaskStatus,
-  TaskState,
   x402PaymentRequiredResponse,
   VerifyResponse,
   PaymentPayload,
+  AgentExecutor,
+} from "../types/state";
+import {
+  PaymentStatus,
 } from "../types/state";
 import { x402ExtensionConfig } from "../types/config";
 import {
@@ -296,13 +296,14 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
       }
 
       task = {
+        kind: "task" as const,
         id: context.taskId,
-        contextId: context.contextId,
-        status: { state: TaskState.INPUT_REQUIRED },
+        contextId: context.contextId || context.taskId,
+        status: { state: "input-required" },
         metadata: {},
       };
     } else {
-      task.status.state = TaskState.INPUT_REQUIRED;
+      task.status.state = "input-required";
     }
 
     // Extract payment requirements from exception
