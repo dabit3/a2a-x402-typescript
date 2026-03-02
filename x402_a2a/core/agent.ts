@@ -231,7 +231,7 @@ export function createX402AgentCard(
     ...(options?.additionalInterfaces && { additionalInterfaces: options.additionalInterfaces }),
     ...(options?.securitySchemes && { securitySchemes: options.securitySchemes }),
     ...(options?.security && { security: options.security }),
-    ...(options?.supportsAuthenticatedExtendedCard && {
+    ...(options?.supportsAuthenticatedExtendedCard !== undefined && {
       supportsAuthenticatedExtendedCard: options.supportsAuthenticatedExtendedCard,
     }),
   };
