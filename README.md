@@ -327,6 +327,7 @@ Always review approval amounts before signing transactions.
 ### Related projects
 - [ADK TypeScript](https://github.com/njraladdin/adk-typescript) - Agent Development Kit for TypeScript
 - [Python x402 implementation](https://github.com/google-agentic-commerce/a2a-x402) - Original protocol specification
+- [TWZRD Agent Intel](https://intel.twzrd.xyz) - Trust scoring MCP server for Solana agent wallets — verify x402 payer reputation before accepting payment
 
 ## License
 
