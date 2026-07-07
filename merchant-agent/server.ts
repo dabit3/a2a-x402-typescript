@@ -153,7 +153,11 @@ const server = createServer(async (req, res) => {
         const context: any = {
           taskId: `task-${Date.now()}`,
           contextId: request.sessionId || `context-${Date.now()}`,
-          userMessage: request.newMessage,
+          userMessage: {
+            kind: 'message',
+            messageId: request.newMessage.messageId || `msg-${Date.now()}`,
+            ...request.newMessage,
+          },
         };
 
         const events: any[] = [];
