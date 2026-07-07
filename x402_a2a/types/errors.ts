@@ -15,8 +15,9 @@
  * Protocol error types and error code mapping
  */
 
-import { PaymentRequirements, SupportedNetworks } from "./state";
-import { Price, TokenAmount } from "./config";
+import type { PaymentRequirements, SupportedNetworks } from "./state";
+import type { Price } from "./config";
+import { createPaymentRequirements } from "../core/merchant";
 
 export class x402Error extends Error {
   constructor(message: string) {
@@ -88,13 +89,10 @@ export class x402PaymentRequiredException extends x402Error {
     return this.paymentRequirements;
   }
 
-  static async forService(
+  static forService(
     options: PaymentRequiredExceptionOptions
-  ): Promise<x402PaymentRequiredException> {
-    // Import here to avoid circular imports
-    const { createPaymentRequirements } = await import("../core/merchant");
-
-    const requirements = await createPaymentRequirements({
+  ): x402PaymentRequiredException {
+    const requirements = createPaymentRequirements({
       price: options.price,
       payToAddress: options.payToAddress,
       resource: options.resource,

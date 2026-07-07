@@ -18,7 +18,6 @@
 // ===== Core x402 Protocol Types (from types) =====
 export type {
   // State types
-  PaymentStatus,
   SupportedNetworks,
   EIP712Domain,
   EIP3009Authorization,
@@ -33,19 +32,24 @@ export type {
   Price,
   x402ExtensionConfig,
   x402ServerConfig,
-  // A2A types
+  // A2A types (re-exported from @a2a-js/sdk)
+  AgentCard,
+  AgentExtension,
+  AgentSkill,
+  Part,
   TextPart,
   Message,
+  TaskState,
   TaskStatus,
   Task,
   RequestContext,
-  EventQueue,
+  ExecutionEventBus,
   AgentExecutor,
   FacilitatorConfig,
   FacilitatorClient,
 } from "./types";
 
-export { x402Metadata, TaskState } from "./types/state";
+export { PaymentStatus, x402Metadata } from "./types/state";
 
 // ===== Extension Constants =====
 export { X402_EXTENSION_URI, DEFAULT_X402_EXTENSION_CONFIG } from "./types/config";
@@ -81,7 +85,7 @@ export {
   createX402AgentCard,
 } from "./core";
 
-export type { ExtensionDeclaration } from "./core/agent";
+
 
 // ===== Error Types =====
 export {
@@ -105,4 +109,4 @@ export {
 } from "./executors";
 
 // ===== Version =====
-export const VERSION = "1.0.0";
+export const VERSION = "0.1.0";

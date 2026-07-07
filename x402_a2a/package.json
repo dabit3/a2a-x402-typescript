@@ -1,19 +1,20 @@
 {
   "name": "a2a-x402",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "x402 payment protocol extension for A2A (TypeScript)",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
+  "type": "module",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -24,12 +25,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run clean && npm run build:cjs && npm run build:esm && npm run build:types && npm run build:pkgjson && npm run build:fix-esm",
-    "build:cjs": "tsc --project tsconfig.cjs.json",
-    "build:esm": "tsc --project tsconfig.esm.json",
-    "build:types": "tsc --project tsconfig.types.json",
-    "build:pkgjson": "echo '{\"type\":\"module\"}' > dist/esm/package.json && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
-    "build:fix-esm": "node scripts/fix-esm-imports.js",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
@@ -48,20 +45,23 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-repo/a2a-x402.git"
+    "url": "git+https://github.com/dabit3/a2a-x402-typescript.git",
+    "directory": "x402_a2a"
   },
   "bugs": {
-    "url": "https://github.com/your-repo/a2a-x402/issues"
+    "url": "https://github.com/dabit3/a2a-x402-typescript/issues"
   },
-  "homepage": "https://github.com/your-repo/a2a-x402#readme",
+  "homepage": "https://github.com/dabit3/a2a-x402-typescript#readme",
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "ethers": "^6.13.0"
+    "@a2a-js/sdk": "^0.3.13",
+    "ethers": "^6.17.0"
   },
   "devDependencies": {
-    "@types/node": "^24.6.2",
+    "@types/node": "^24.13.1",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   },
   "sideEffects": false

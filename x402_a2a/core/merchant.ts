@@ -21,7 +21,7 @@ import {
 } from "../types/state";
 import { Price, TokenAmount } from "../types/config";
 
-interface CreatePaymentRequirementsOptions {
+export interface CreatePaymentRequirementsOptions {
   price: Price;
   payToAddress: string;
   resource: string;
@@ -109,9 +109,9 @@ function processPriceToAtomicAmount(
 /**
  * Creates PaymentRequirements for A2A payment requests
  */
-export async function createPaymentRequirements(
+export function createPaymentRequirements(
   options: CreatePaymentRequirementsOptions
-): Promise<PaymentRequirements> {
+): PaymentRequirements {
   const {
     price,
     payToAddress,

@@ -15,17 +15,17 @@
  * Server-side executor for merchant implementations
  */
 
+import type { Task } from "@a2a-js/sdk";
+import type {
+  AgentExecutor,
+  ExecutionEventBus,
+  RequestContext,
+} from "@a2a-js/sdk/server";
 import { x402BaseExecutor } from "./base";
 import {
-  AgentExecutor,
-  RequestContext,
-  EventQueue,
   PaymentStatus,
   PaymentRequirements,
   SettleResponse,
-  Task,
-  TaskStatus,
-  TaskState,
   x402PaymentRequiredResponse,
   VerifyResponse,
   PaymentPayload,
@@ -64,24 +64,31 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     requirements: PaymentRequirements
   ): Promise<SettleResponse>;
 
-  async execute(context: RequestContext, eventQueue: EventQueue): Promise<void> {
+  async execute(
+    context: RequestContext,
+    eventBus: ExecutionEventBus
+  ): Promise<void> {
     // Check if this is a payment submission
-    const taskStatus = this.utils.getPaymentStatusFromTask(context.currentTask!);
-    const messageStatus = this.utils.getPaymentStatusFromMessage(context.message);
+    const taskStatus = context.task
+      ? this.utils.getPaymentStatusFromTask(context.task)
+      : null;
+    const messageStatus = this.utils.getPaymentStatusFromMessage(
+      context.userMessage
+    );
 
     if (
       taskStatus === PaymentStatus.PAYMENT_SUBMITTED ||
       messageStatus === PaymentStatus.PAYMENT_SUBMITTED
     ) {
-      return this._processPaidRequest(context, eventQueue);
+      return this._processPaidRequest(context, eventBus);
     }
 
     // Try to execute delegate - catch payment exceptions
     try {
-      return await this._delegate.execute(context, eventQueue);
+      return await this._delegate.execute(context, eventBus);
     } catch (error) {
       if (error instanceof x402PaymentRequiredException) {
-        await this._handlePaymentRequiredException(error, context, eventQueue);
+        this._handlePaymentRequiredException(error, context, eventBus);
         return;
       }
       throw error;
@@ -90,10 +97,10 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
 
   private async _processPaidRequest(
     context: RequestContext,
-    eventQueue: EventQueue
+    eventBus: ExecutionEventBus
   ): Promise<void> {
     logger.log("Starting payment processing...");
-    const task = context.currentTask;
+    const task = context.task;
     if (!task) {
       logger.error("Task not found in context during payment processing.");
       throw new Error("Task not found in context");
@@ -105,7 +112,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
 
     const paymentPayload =
       this.utils.getPaymentPayload(task) ||
-      this.utils.getPaymentPayloadFromMessage(context.message);
+      this.utils.getPaymentPayloadFromMessage(context.userMessage);
 
     if (!paymentPayload) {
       logger.warn(
@@ -115,7 +122,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         task,
         x402ErrorCode.INVALID_SIGNATURE,
         "Missing payment data",
-        eventQueue
+        eventBus
       );
     }
 
@@ -132,7 +139,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         task,
         x402ErrorCode.INVALID_SIGNATURE,
         "Missing payment requirements",
-        eventQueue
+        eventBus
       );
     }
 
@@ -157,7 +164,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
           task,
           x402ErrorCode.INVALID_SIGNATURE,
           verifyResponse.invalidReason || "Invalid payment",
-          eventQueue
+          eventBus
         );
       }
     } catch (error) {
@@ -166,13 +173,13 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         task,
         x402ErrorCode.INVALID_SIGNATURE,
         `Verification failed: ${error}`,
-        eventQueue
+        eventBus
       );
     }
 
     logger.log("Payment verified successfully. Recording and updating task.");
     this.utils.recordPaymentVerified(task);
-    await eventQueue.enqueueEvent(task);
+    eventBus.publish(task);
 
     // Add verification status to task metadata
     if (!task.metadata) {
@@ -182,7 +189,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
 
     try {
       logger.log("Executing delegate agent...");
-      await this._delegate.execute(context, eventQueue);
+      await this._delegate.execute(context, eventBus);
       logger.log("Delegate agent execution finished.");
     } catch (error) {
       logger.error("Exception during delegate execution:", error);
@@ -190,7 +197,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         task,
         x402ErrorCode.SETTLEMENT_FAILED,
         `Service failed: ${error}`,
-        eventQueue
+        eventBus
       );
     }
 
@@ -219,15 +226,15 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         x402ServerExecutor._paymentRequirementsStore.delete(task.id);
       }
 
-      await eventQueue.enqueueEvent(task);
+      eventBus.publish(task);
       logger.log("Settlement processing finished.");
     } catch (error) {
       logger.error("Exception during settlement:", error);
-      await this._failPayment(
+      this._failPayment(
         task,
         x402ErrorCode.SETTLEMENT_FAILED,
         `Settlement failed: ${error}`,
-        eventQueue
+        eventBus
       );
     }
   }
@@ -271,7 +278,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
 
     const paymentPayload =
       this.utils.getPaymentPayload(task) ||
-      this.utils.getPaymentPayloadFromMessage(context.message);
+      this.utils.getPaymentPayloadFromMessage(context.userMessage);
 
     if (!paymentPayload) {
       logger.warn("Could not extract payment payload from task or message.");
@@ -281,12 +288,12 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     return this._findMatchingPaymentRequirement(acceptsArray, paymentPayload);
   }
 
-  private async _handlePaymentRequiredException(
+  private _handlePaymentRequiredException(
     exception: x402PaymentRequiredException,
     context: RequestContext,
-    eventQueue: EventQueue
-  ): Promise<void> {
-    let task = context.currentTask;
+    eventBus: ExecutionEventBus
+  ): void {
+    let task = context.task;
 
     if (!task) {
       if (!context.taskId) {
@@ -296,13 +303,14 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
       }
 
       task = {
+        kind: "task",
         id: context.taskId,
         contextId: context.contextId,
-        status: { state: TaskState.INPUT_REQUIRED },
+        status: { state: "input-required" },
         metadata: {},
       };
     } else {
-      task.status.state = TaskState.INPUT_REQUIRED;
+      task.status.state = "input-required";
     }
 
     // Extract payment requirements from exception
@@ -322,15 +330,15 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
     this.utils.createPaymentRequiredTask(task, paymentRequired);
 
     // Send the payment required response
-    await eventQueue.enqueueEvent(task);
+    eventBus.publish(task);
   }
 
-  private async _failPayment(
+  private _failPayment(
     task: Task,
     errorCode: string,
     errorReason: string,
-    eventQueue: EventQueue
-  ): Promise<void> {
+    eventBus: ExecutionEventBus
+  ): void {
     const lastRequirements =
       x402ServerExecutor._paymentRequirementsStore.get(task.id)?.[0];
     const failureResponse: SettleResponse = {
@@ -341,6 +349,6 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
 
     this.utils.recordPaymentFailure(task, errorCode, failureResponse);
     x402ServerExecutor._paymentRequirementsStore.delete(task.id);
-    await eventQueue.enqueueEvent(task);
+    eventBus.publish(task);
   }
 }

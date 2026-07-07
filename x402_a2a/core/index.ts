@@ -37,5 +37,4 @@ export {
   checkExtensionActivation,
   addExtensionActivationHeader,
   createX402AgentCard,
-  ExtensionDeclaration,
 } from "./agent";

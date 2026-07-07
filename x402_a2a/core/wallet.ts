@@ -15,7 +15,7 @@
  * Payment signing and processing functions
  */
 
-import { Wallet, TypedDataDomain, TypedDataField } from "ethers";
+import type { BaseWallet, TypedDataDomain, TypedDataField } from "ethers";
 import {
   PaymentRequirements,
   x402PaymentRequiredResponse,
@@ -66,7 +66,7 @@ function generateNonce(): string {
  */
 export async function processPaymentRequired(
   paymentRequired: x402PaymentRequiredResponse,
-  wallet: Wallet,
+  wallet: BaseWallet,
   maxValue?: number
 ): Promise<PaymentPayload> {
   const selectedRequirement = selectPaymentRequirement(
@@ -81,7 +81,7 @@ export async function processPaymentRequired(
  */
 export async function processPayment(
   requirements: PaymentRequirements,
-  wallet: Wallet,
+  wallet: BaseWallet,
   maxValue?: number
 ): Promise<PaymentPayload> {
   // Validate max value if provided
@@ -114,8 +114,8 @@ export async function processPayment(
 
   // EIP-712 domain
   const domain: TypedDataDomain = {
-    name: requirements.extra?.name || "USDC",
-    version: requirements.extra?.version || "2",
+    name: typeof requirements.extra?.name === "string" ? requirements.extra.name : "USDC",
+    version: typeof requirements.extra?.version === "string" ? requirements.extra.version : "2",
     chainId: getChainId(requirements.network as SupportedNetworks),
     verifyingContract: requirements.asset,
   };

@@ -7,7 +7,8 @@
     "dev": "adk run .",
     "start": "adk run .",
     "web": "adk web .",
-    "build": "tsc --project tsconfig.json"
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
   },
   "keywords": [
     "x402",
@@ -20,13 +21,13 @@
   "license": "Apache-2.0",
   "dependencies": {
     "a2a-x402": "file:../x402_a2a",
-    "adk-typescript": "^1.0.3",
+    "adk-typescript": "^1.0.4",
     "dotenv": "^17.2.3",
-    "ethers": "^6.13.0"
+    "ethers": "^6.17.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^24.13.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3"
   }
 }

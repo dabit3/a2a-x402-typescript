@@ -22,22 +22,20 @@
 import { createServer } from 'http';
 import { wrappedMerchantAgent, lastPaymentException, clearLastPaymentException } from './wrapped-agent';
 import { MerchantServerExecutor } from './src/executor/MerchantServerExecutor';
-import {
-  x402PaymentRequiredException,
-  PaymentStatus,
-  x402Utils,
-  TaskState,
-} from 'a2a-x402';
-// Import directly from the compiled files, bypassing package.json exports
-// to avoid path resolution issues in Docker
-const path = require('path');
-const { Runner } = require(path.resolve('/node_modules/adk-typescript/dist/runners'));
-const { InMemorySessionService } = require(path.resolve('/node_modules/adk-typescript/dist/sessions'));
-const { InMemoryArtifactService } = require(path.resolve('/node_modules/adk-typescript/dist/artifacts'));
-const { InMemoryMemoryService } = require(path.resolve('/node_modules/adk-typescript/dist/memory'));
+import { x402PaymentRequiredException } from 'a2a-x402';
+import * as path from 'path';
 
-const PORT = process.env.PORT || 10000;
-const utils = new x402Utils();
+// adk-typescript's compiled output references module paths with inconsistent
+// casing (e.g. '../sessions/State' vs 'state.js'), which breaks both its
+// package exports and type resolution on case-sensitive filesystems. Resolve
+// the compiled modules directly from the installed package instead.
+const adkDist = path.join(path.dirname(require.resolve('adk-typescript/agents')), '..');
+const { Runner } = require(path.join(adkDist, 'runners'));
+const { InMemorySessionService } = require(path.join(adkDist, 'sessions', 'inMemorySessionService'));
+const { InMemoryArtifactService } = require(path.join(adkDist, 'artifacts', 'inMemoryArtifactService'));
+const { InMemoryMemoryService } = require(path.join(adkDist, 'memory', 'inMemoryMemoryService'));
+
+const PORT = Number(process.env.PORT) || 10000;
 
 // Create ADK services for proper session management
 const sessionService = new InMemorySessionService();
@@ -55,11 +53,11 @@ const runner = new Runner({
 
 // AgentExecutor adapter that uses ADK Runner
 class AgentExecutorAdapter {
-  async execute(context: any, eventQueue: any): Promise<void> {
+  async execute(context: any, eventBus: any): Promise<void> {
     try {
       console.log('\n=== AgentExecutorAdapter Debug ===');
       console.log('Context ID:', context.contextId);
-      console.log('Message:', JSON.stringify(context.message, null, 2));
+      console.log('Message:', JSON.stringify(context.userMessage, null, 2));
 
       clearLastPaymentException(); // Clear any previous exception
 
@@ -67,9 +65,9 @@ class AgentExecutorAdapter {
       for await (const event of runner.runAsync({
         userId: 'client-user',
         sessionId: context.contextId,
-        newMessage: context.message,
+        newMessage: context.userMessage,
       })) {
-        await eventQueue.enqueueEvent({
+        eventBus.publish({
           id: context.taskId,
           status: {
             state: 'input-required',
@@ -92,6 +90,10 @@ class AgentExecutorAdapter {
       console.error('Agent execution error:', error);
       throw error;
     }
+  }
+
+  async cancelTask(_taskId: string, _eventBus: any): Promise<void> {
+    // No-op: this adapter does not support task cancellation
   }
 }
 
@@ -151,19 +153,23 @@ const server = createServer(async (req, res) => {
         const context: any = {
           taskId: `task-${Date.now()}`,
           contextId: request.sessionId || `context-${Date.now()}`,
-          message: request.newMessage,
+          userMessage: {
+            kind: 'message',
+            messageId: request.newMessage.messageId || `msg-${Date.now()}`,
+            ...request.newMessage,
+          },
         };
 
         const events: any[] = [];
-        const eventQueue = {
-          enqueueEvent: async (event: any) => {
-            console.log('Event enqueued:', JSON.stringify(event, null, 2));
+        const eventBus = {
+          publish: (event: any) => {
+            console.log('Event published:', JSON.stringify(event, null, 2));
             events.push(event);
           },
         };
 
         // Execute through payment executor
-        await paymentExecutor.execute(context, eventQueue);
+        await paymentExecutor.execute(context, eventBus as any);
 
         // Transform events for ADK response format
         const adkEvents = events.map(e => {
@@ -200,22 +206,23 @@ const server = createServer(async (req, res) => {
       const context: any = {
         taskId: request.taskId || `task-${Date.now()}`,
         contextId: request.contextId || `context-${Date.now()}`,
-        message: request.message || {
+        userMessage: request.message || {
+          kind: 'message',
           messageId: `msg-${Date.now()}`,
           role: 'user',
-          parts: [{ text: request.text || request.input || '' }],
+          parts: [{ kind: 'text', text: request.text || request.input || '' }],
         },
       };
 
       const events: any[] = [];
-      const eventQueue = {
-        enqueueEvent: async (event: any) => {
+      const eventBus = {
+        publish: (event: any) => {
           events.push(event);
         },
       };
 
       // Execute through payment executor
-      await paymentExecutor.execute(context, eventQueue);
+      await paymentExecutor.execute(context, eventBus as any);
 
       // Check if any events contain payment requirements
       const hasPaymentRequired = events.some(e =>

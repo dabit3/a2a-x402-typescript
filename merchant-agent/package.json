@@ -11,6 +11,7 @@
     "web": "adk web . --port 10000",
     "dev:watch": "nodemon --watch src --watch server.ts --watch agent.ts --exec 'npm run dev'",
     "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
     "test:payment": "ts-node -r dotenv/config src/test-payment-flow.ts",
     "test:payment:watch": "nodemon --watch src --exec 'npm run test:payment'",
     "clean": "rm -f *.js *.js.map src/**/*.js src/**/*.js.map",
@@ -18,14 +19,14 @@
   },
   "dependencies": {
     "a2a-x402": "file:../x402_a2a",
-    "adk-typescript": "1.0.3",
+    "adk-typescript": "^1.0.4",
     "dotenv": "^17.2.3",
-    "ethers": "^6.13.0"
+    "ethers": "^6.17.0"
   },
   "devDependencies": {
-    "@types/node": "^24.6.2",
-    "nodemon": "^3.0.0",
-    "ts-node": "^10.9.0",
+    "@types/node": "^24.13.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.3"
   }

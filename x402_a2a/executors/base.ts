@@ -15,14 +15,16 @@
  * Base executor for x402 payment middleware
  */
 
-import {
+import type {
   AgentExecutor,
+  ExecutionEventBus,
   RequestContext,
-  EventQueue,
-} from "../types/state";
-import { x402ExtensionConfig, DEFAULT_X402_EXTENSION_CONFIG } from "../types/config";
+} from "@a2a-js/sdk/server";
+import {
+  x402ExtensionConfig,
+  DEFAULT_X402_EXTENSION_CONFIG,
+} from "../types/config";
 import { x402Utils } from "../core/utils";
-import { checkExtensionActivation } from "../core/agent";
 
 export abstract class x402BaseExecutor implements AgentExecutor {
   protected _delegate: AgentExecutor;
@@ -44,5 +46,12 @@ export abstract class x402BaseExecutor implements AgentExecutor {
     return true;
   }
 
-  abstract execute(context: RequestContext, eventQueue: EventQueue): Promise<void>;
+  abstract execute(
+    context: RequestContext,
+    eventBus: ExecutionEventBus
+  ): Promise<void>;
+
+  async cancelTask(taskId: string, eventBus: ExecutionEventBus): Promise<void> {
+    return this._delegate.cancelTask(taskId, eventBus);
+  }
 }

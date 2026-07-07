@@ -19,16 +19,17 @@ import {
   x402PaymentRequiredException,
   PaymentRequiredExceptionOptions,
 } from "../types/errors";
-import { PaymentRequirements, SupportedNetworks } from "../types/state";
-import { Price, TokenAmount } from "../types/config";
+import type { PaymentRequirements, SupportedNetworks } from "../types/state";
+import type { Price } from "../types/config";
 import { createPaymentRequirements } from "./merchant";
+import type { Task } from "@a2a-js/sdk";
 
 /**
  * Create a payment required exception for immediate raising
  */
-export async function requirePayment(
+export function requirePayment(
   options: PaymentRequiredExceptionOptions
-): Promise<x402PaymentRequiredException> {
+): x402PaymentRequiredException {
   return x402PaymentRequiredException.forService(options);
 }
 
@@ -53,12 +54,12 @@ export function paidService(options: PaymentRequiredExceptionOptions) {
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (..._args: unknown[]) {
       // For now, always require payment on first call
       // In a real implementation, you might check payment status from context
       const effectiveResource = options.resource || `/${propertyKey}`;
 
-      throw await x402PaymentRequiredException.forService({
+      throw x402PaymentRequiredException.forService({
         ...options,
         resource: effectiveResource,
       });
@@ -77,13 +78,13 @@ interface TierDefinition {
 /**
  * Create multiple payment options with different tiers/features
  */
-export async function createTieredPaymentOptions(
+export function createTieredPaymentOptions(
   basePrice: Price,
   payToAddress: string,
   resource: string,
   tiers?: TierDefinition[],
   network: SupportedNetworks = "base"
-): Promise<PaymentRequirements[]> {
+): PaymentRequirements[] {
   const defaultTiers: TierDefinition[] = [
     { multiplier: 1, suffix: "basic", description: "Basic service" },
     { multiplier: 2, suffix: "premium", description: "Premium service" },
@@ -109,7 +110,7 @@ export async function createTieredPaymentOptions(
 
     const tierResource = suffix ? `${resource}/${suffix}` : resource;
 
-    const option = await createPaymentRequirements({
+    const option = createPaymentRequirements({
       price: tierPrice,
       payToAddress,
       resource: tierResource,
@@ -126,15 +127,10 @@ export async function createTieredPaymentOptions(
 /**
  * Check if current context has payment information
  */
-export function checkPaymentContext(context: any): string | null {
-  // Placeholder implementation
-  if (context?.currentTask) {
-    const task = context.currentTask;
-    if (task?.status?.message?.metadata) {
-      return task.status.message.metadata["x402.payment.status"] || null;
-    }
-  }
-  return null;
+export function checkPaymentContext(context: unknown): string | null {
+  const task = (context as { task?: Task } | null | undefined)?.task;
+  const status = task?.status?.message?.metadata?.["x402.payment.status"];
+  return typeof status === "string" ? status : null;
 }
 
 /**
@@ -148,11 +144,11 @@ export function smartPaidService(options: PaymentRequiredExceptionOptions) {
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       // Try to detect context from arguments
-      let context = null;
+      let context: unknown = null;
       for (const arg of args) {
-        if (arg?.currentTask) {
+        if ((arg as { task?: unknown } | null | undefined)?.task) {
           context = arg;
           break;
         }
@@ -173,7 +169,7 @@ export function smartPaidService(options: PaymentRequiredExceptionOptions) {
       // No payment found, require payment
       const effectiveResource = options.resource || `/${propertyKey}`;
 
-      throw await x402PaymentRequiredException.forService({
+      throw x402PaymentRequiredException.forService({
         ...options,
         resource: effectiveResource,
       });

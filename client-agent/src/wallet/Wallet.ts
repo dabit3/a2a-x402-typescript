@@ -160,7 +160,7 @@ Amount: ${paymentOption.maxAmountRequired}
       value: paymentOption.maxAmountRequired,
       validAfter: Math.floor(Date.now() / 1000),
       validBefore: Math.floor(Date.now() / 1000) + paymentOption.maxTimeoutSeconds,
-      nonce: `0x${ethers.hexlify(ethers.randomBytes(32))}`,
+      nonce: ethers.hexlify(ethers.randomBytes(32)),
       extra: { message: messageToSign },
     };
 
