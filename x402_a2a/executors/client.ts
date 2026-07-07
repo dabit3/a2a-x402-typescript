@@ -15,27 +15,27 @@
  * Client-side executor for wallet/signing implementations
  */
 
-import { Wallet } from "ethers";
-import { x402BaseExecutor } from "./base";
-import {
+import { BaseWallet } from "ethers";
+import type { Task } from "@a2a-js/sdk";
+import type {
   AgentExecutor,
+  ExecutionEventBus,
   RequestContext,
-  EventQueue,
-  PaymentStatus,
-  SettleResponse,
-} from "../types/state";
+} from "@a2a-js/sdk/server";
+import { x402BaseExecutor } from "./base";
+import { PaymentStatus, SettleResponse } from "../types/state";
 import { x402ExtensionConfig } from "../types/config";
 import { processPayment } from "../core/wallet";
 import { x402ErrorCode } from "../types/errors";
 
 export class x402ClientExecutor extends x402BaseExecutor {
-  private wallet: Wallet;
+  private wallet: BaseWallet;
   private maxValue?: number;
   private autoPay: boolean;
 
   constructor(
     delegate: AgentExecutor,
-    wallet: Wallet,
+    wallet: BaseWallet,
     config?: Partial<x402ExtensionConfig>,
     maxValue?: number,
     autoPay: boolean = true
@@ -46,32 +46,32 @@ export class x402ClientExecutor extends x402BaseExecutor {
     this.autoPay = autoPay;
   }
 
-  async execute(context: RequestContext, eventQueue: EventQueue): Promise<void> {
+  async execute(
+    context: RequestContext,
+    eventBus: ExecutionEventBus
+  ): Promise<void> {
     if (!this.isActive(context)) {
-      return this._delegate.execute(context, eventQueue);
+      return this._delegate.execute(context, eventBus);
     }
 
     // Execute the service request first
-    const result = await this._delegate.execute(context, eventQueue);
+    await this._delegate.execute(context, eventBus);
 
     // Check if payment is required after execution
-    const task = context.currentTask;
+    const task = context.task;
     if (!task) {
-      return result;
+      return;
     }
 
     const status = this.utils.getPaymentStatus(task);
 
     // If payment required, auto-process and resubmit
     if (status === PaymentStatus.PAYMENT_REQUIRED && this.autoPay) {
-      await this._autoPay(task, eventQueue);
-      return;
+      await this._autoPay(task, eventBus);
     }
-
-    return result;
   }
 
-  private async _autoPay(task: any, eventQueue: EventQueue): Promise<void> {
+  private async _autoPay(task: Task, eventBus: ExecutionEventBus): Promise<void> {
     const paymentRequired = this.utils.getPaymentRequirements(task);
     if (!paymentRequired) {
       return; // No payment requirements found
@@ -87,7 +87,7 @@ export class x402ClientExecutor extends x402BaseExecutor {
 
       // Submit payment authorization
       this.utils.recordPaymentSubmission(task, paymentPayload);
-      await eventQueue.enqueueEvent(task);
+      eventBus.publish(task);
     } catch (e) {
       // Payment processing failed
       const error = e as Error;
@@ -101,7 +101,7 @@ export class x402ClientExecutor extends x402BaseExecutor {
         x402ErrorCode.INVALID_SIGNATURE,
         failureResponse
       );
-      await eventQueue.enqueueEvent(task);
+      eventBus.publish(task);
     }
   }
 }

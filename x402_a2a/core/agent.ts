@@ -15,13 +15,9 @@
  * Agent utilities for x402 protocol
  */
 
+import { HTTP_EXTENSION_HEADER } from "@a2a-js/sdk";
+import type { AgentCard, AgentExtension, AgentSkill } from "@a2a-js/sdk";
 import { X402_EXTENSION_URI } from "../types/config";
-
-export interface ExtensionDeclaration {
-  uri: string;
-  description: string;
-  required: boolean;
-}
 
 /**
  * Creates extension declaration for AgentCard
@@ -29,7 +25,7 @@ export interface ExtensionDeclaration {
 export function getExtensionDeclaration(
   description: string = "Supports x402 payments",
   required: boolean = true
-): ExtensionDeclaration {
+): AgentExtension {
   return {
     uri: X402_EXTENSION_URI,
     description,
@@ -40,8 +36,13 @@ export function getExtensionDeclaration(
 /**
  * Check if x402 extension is activated via HTTP headers
  */
-export function checkExtensionActivation(requestHeaders: Record<string, string>): boolean {
-  const extensions = requestHeaders["x-a2a-extensions"] || requestHeaders["X-A2A-Extensions"] || "";
+export function checkExtensionActivation(
+  requestHeaders: Record<string, string>
+): boolean {
+  const extensions =
+    requestHeaders[HTTP_EXTENSION_HEADER.toLowerCase()] ||
+    requestHeaders[HTTP_EXTENSION_HEADER] ||
+    "";
   return extensions.includes(X402_EXTENSION_URI);
 }
 
@@ -51,7 +52,7 @@ export function checkExtensionActivation(requestHeaders: Record<string, string>)
 export function addExtensionActivationHeader(
   responseHeaders: Record<string, string>
 ): Record<string, string> {
-  responseHeaders["X-A2A-Extensions"] = X402_EXTENSION_URI;
+  responseHeaders[HTTP_EXTENSION_HEADER] = X402_EXTENSION_URI;
   return responseHeaders;
 }
 
@@ -63,12 +64,14 @@ export function createX402AgentCard(
   description: string,
   url: string,
   version: string = "1.0.0",
-  skills: any[] = []
-): any {
+  skills: AgentSkill[] = []
+): AgentCard {
   return {
+    protocolVersion: "0.3.0",
     name,
     description,
     url,
+    preferredTransport: "JSONRPC",
     version,
     defaultInputModes: ["text", "text/plain"],
     defaultOutputModes: ["text", "text/plain"],

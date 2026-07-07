@@ -29,7 +29,6 @@ import {
   createPaymentSubmissionMessage,
   PaymentRequirements,
   Task,
-  TaskState,
   Message,
 } from 'a2a-x402';
 import { MerchantServerExecutor } from './executor/MerchantServerExecutor';
@@ -39,13 +38,14 @@ import { createHash } from 'crypto';
 class MockAgentExecutor {
   private paymentVerified = false;
 
-  async execute(context: any, eventQueue: any): Promise<void> {
+  async execute(context: any, eventBus: any): Promise<void> {
     console.log('\n📝 Mock Agent Executor: Processing request...');
 
     // If payment has been verified, confirm the order
     if (this.paymentVerified) {
       console.log('   ✅ Payment verified! Confirming order...');
       const message: Message = {
+        kind: 'message',
         messageId: 'msg-confirm',
         role: 'agent',
         parts: [{
@@ -54,10 +54,12 @@ class MockAgentExecutor {
         }],
       };
 
-      await eventQueue.enqueueEvent({
+      eventBus.publish({
+        kind: 'task',
         id: context.taskId,
+        contextId: context.contextId,
         status: {
-          state: TaskState.COMPLETED,
+          state: 'completed',
           message,
         },
       });
@@ -102,6 +104,10 @@ class MockAgentExecutor {
     );
   }
 
+  async cancelTask(_taskId: string, _eventBus: any): Promise<void> {
+    // No-op: mock executor does not support cancellation
+  }
+
   markPaymentVerified(): void {
     this.paymentVerified = true;
   }
@@ -114,13 +120,13 @@ function getProductPrice(productName: string): string {
   return price.toString();
 }
 
-// Mock event queue
-class MockEventQueue {
+// Mock event bus
+class MockEventBus {
   private events: Task[] = [];
 
-  async enqueueEvent(task: Task): Promise<void> {
+  publish(task: Task): void {
     this.events.push(task);
-    console.log(`\n📨 Event Enqueued: Task ${task.id} - State: ${task.status.state}`);
+    console.log(`\n📨 Event Published: Task ${task.id} - State: ${task.status.state}`);
     if (task.status.message?.metadata) {
       const status = task.status.message.metadata['x402.payment.status'];
       if (status) {
@@ -181,17 +187,18 @@ async function testPaymentFlow() {
   const context: any = {
     taskId,
     contextId: 'test-context-123',
-    message: {
+    userMessage: {
+      kind: 'message',
       messageId: 'msg-1',
       role: 'user',
       parts: [{ kind: 'text', text: 'I want to buy a banana' }],
     },
   };
 
-  const eventQueue = new MockEventQueue();
+  const eventBus = new MockEventBus();
 
   try {
-    await merchantExecutor.execute(context, eventQueue as any);
+    await merchantExecutor.execute(context, eventBus as any);
   } catch (error) {
     // Expected to catch payment exception
   }
@@ -199,7 +206,7 @@ async function testPaymentFlow() {
   // Step 3: Client receives payment requirements
   console.log('\n📋 Step 3: Client receives payment requirements');
 
-  const task = eventQueue.getLatestTask();
+  const task = eventBus.getLatestTask();
   if (!task) {
     throw new Error('No task found');
   }
@@ -238,8 +245,8 @@ async function testPaymentFlow() {
   const paymentContext: any = {
     taskId,
     contextId: 'test-context-123',
-    currentTask: task,
-    message: paymentMessage,
+    task,
+    userMessage: paymentMessage,
   };
 
   // Update task with payment submission
@@ -248,12 +255,12 @@ async function testPaymentFlow() {
   // Step 6: Merchant processes payment
   console.log('\n📋 Step 6: Merchant verifies and settles payment');
 
-  await merchantExecutor.execute(paymentContext, eventQueue as any);
+  await merchantExecutor.execute(paymentContext, eventBus as any);
 
   // Step 7: Check final result
   console.log('\n📋 Step 7: Check final result');
 
-  const finalTask = eventQueue.getLatestTask();
+  const finalTask = eventBus.getLatestTask();
   if (!finalTask) {
     throw new Error('No final task found');
   }
@@ -272,7 +279,7 @@ async function testPaymentFlow() {
 
   // Display all events
   console.log('\n📊 Event Timeline:');
-  eventQueue.getEvents().forEach((event, index) => {
+  eventBus.getEvents().forEach((event, index) => {
     const status = event.status.message?.metadata?.['x402.payment.status'];
     console.log(`   ${index + 1}. Task ${event.id} - ${event.status.state} - ${status || 'N/A'}`);
   });

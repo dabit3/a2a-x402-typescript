@@ -16,19 +16,17 @@
  */
 
 // Config types
-export {
-  X402_EXTENSION_URI,
+export { X402_EXTENSION_URI, DEFAULT_X402_EXTENSION_CONFIG } from "./config";
+export type {
   TokenAmount,
   Price,
   x402ExtensionConfig,
-  DEFAULT_X402_EXTENSION_CONFIG,
   x402ServerConfig,
 } from "./config";
 
 // State types
-export {
-  PaymentStatus,
-  x402Metadata,
+export { PaymentStatus, x402Metadata } from "./state";
+export type {
   SupportedNetworks,
   EIP712Domain,
   EIP3009Authorization,
@@ -38,14 +36,19 @@ export {
   x402PaymentRequiredResponse,
   VerifyResponse,
   SettleResponse,
-  TaskState,
-  TextPart,
+  // A2A types (re-exported from @a2a-js/sdk)
+  AgentCard,
+  AgentExtension,
+  AgentSkill,
   Message,
-  TaskStatus,
+  Part,
   Task,
-  RequestContext,
-  EventQueue,
+  TaskState,
+  TaskStatus,
+  TextPart,
   AgentExecutor,
+  ExecutionEventBus,
+  RequestContext,
   FacilitatorConfig,
   FacilitatorClient,
 } from "./state";
@@ -58,7 +61,7 @@ export {
   PaymentError,
   StateError,
   x402PaymentRequiredException,
-  PaymentRequiredExceptionOptions,
   x402ErrorCode,
   mapErrorToCode,
 } from "./errors";
+export type { PaymentRequiredExceptionOptions } from "./errors";

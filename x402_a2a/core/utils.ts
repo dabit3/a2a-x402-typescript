@@ -15,27 +15,16 @@
  * State management utilities for x402 protocol
  */
 
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
+import type { Message, Task } from "@a2a-js/sdk";
 import {
-  Task,
-  Message,
   PaymentStatus,
   x402Metadata,
   x402PaymentRequiredResponse,
   PaymentPayload,
   SettleResponse,
-  TaskState,
-  TaskStatus,
-  TextPart,
 } from "../types/state";
 import { logger } from "./logger";
-
-/**
- * Parse payment payload from metadata
- */
-function parsePaymentPayload(payloadData: any): PaymentPayload {
-  return payloadData as PaymentPayload;
-}
 
 /**
  * Creates correlated payment submission message per spec
@@ -46,9 +35,9 @@ export function createPaymentSubmissionMessage(
   text: string = "Payment authorization provided",
   messageId?: string
 ): Message {
-  const msgId = messageId || randomUUID();
   return {
-    messageId: msgId,
+    kind: "message",
+    messageId: messageId || randomUUID(),
     taskId,
     role: "user",
     parts: [{ kind: "text", text }],
@@ -67,6 +56,33 @@ export function extractTaskId(message: Message): string | undefined {
 }
 
 /**
+ * Ensures the task has a status message with a metadata object, and returns
+ * that metadata object.
+ */
+function ensureStatusMessageMetadata(
+  task: Task,
+  defaultText: string
+): Record<string, unknown> {
+  if (!task.status.message) {
+    task.status.message = {
+      kind: "message",
+      messageId: `${task.id}-status`,
+      taskId: task.id,
+      contextId: task.contextId,
+      role: "agent",
+      parts: [{ kind: "text", text: defaultText }],
+      metadata: {},
+    };
+  }
+
+  if (!task.status.message.metadata) {
+    task.status.message.metadata = {};
+  }
+
+  return task.status.message.metadata;
+}
+
+/**
  * Core utilities for x402 protocol state management
  */
 export class x402Utils {
@@ -82,7 +98,10 @@ export class x402Utils {
     }
 
     const statusValue = message.metadata[x402Utils.STATUS_KEY];
-    if (statusValue && Object.values(PaymentStatus).includes(statusValue)) {
+    if (
+      typeof statusValue === "string" &&
+      (Object.values(PaymentStatus) as string[]).includes(statusValue)
+    ) {
       return statusValue as PaymentStatus;
     }
     return null;
@@ -107,14 +126,7 @@ export class x402Utils {
     }
 
     const reqData = message.metadata[x402Utils.REQUIRED_KEY];
-    if (reqData) {
-      try {
-        return reqData as x402PaymentRequiredResponse;
-      } catch {
-        return null;
-      }
-    }
-    return null;
+    return reqData ? (reqData as x402PaymentRequiredResponse) : null;
   }
 
   getPaymentRequirementsFromTask(
@@ -138,7 +150,7 @@ export class x402Utils {
     const payloadData = message.metadata[x402Utils.PAYLOAD_KEY];
     if (payloadData) {
       try {
-        return parsePaymentPayload(payloadData);
+        return payloadData as PaymentPayload;
       } catch (error) {
         logger.error("Failed to parse payment payload:", error);
         return null;
@@ -163,84 +175,46 @@ export class x402Utils {
     paymentRequired: x402PaymentRequiredResponse
   ): Task {
     // Set task status to input-required as per A2A spec
-    if (task.status) {
-      task.status.state = TaskState.INPUT_REQUIRED;
-    } else {
-      task.status = { state: TaskState.INPUT_REQUIRED };
-    }
+    task.status.state = "input-required";
 
-    // Ensure task has a status message for metadata
-    if (!task.status.message) {
-      task.status.message = {
-        messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment is required for this service." }],
-        metadata: {},
-      };
-    }
+    const metadata = ensureStatusMessageMetadata(
+      task,
+      "Payment is required for this service."
+    );
 
-    // Ensure message has metadata
-    if (!task.status.message.metadata) {
-      task.status.message.metadata = {};
-    }
-
-    task.status.message.metadata[x402Utils.STATUS_KEY] =
-      PaymentStatus.PAYMENT_REQUIRED;
-    task.status.message.metadata[x402Utils.REQUIRED_KEY] = paymentRequired;
+    metadata[x402Utils.STATUS_KEY] = PaymentStatus.PAYMENT_REQUIRED;
+    metadata[x402Utils.REQUIRED_KEY] = paymentRequired;
 
     return task;
   }
 
   recordPaymentVerified(task: Task): Task {
-    // Ensure task has a status message for metadata
-    if (!task.status.message) {
-      task.status.message = {
-        messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment verification recorded." }],
-        metadata: {},
-      };
-    }
+    const metadata = ensureStatusMessageMetadata(
+      task,
+      "Payment verification recorded."
+    );
 
-    // Ensure message has metadata
-    if (!task.status.message.metadata) {
-      task.status.message.metadata = {};
-    }
-
-    task.status.message.metadata[x402Utils.STATUS_KEY] =
-      PaymentStatus.PAYMENT_VERIFIED;
+    metadata[x402Utils.STATUS_KEY] = PaymentStatus.PAYMENT_VERIFIED;
 
     return task;
   }
 
   recordPaymentSuccess(task: Task, settleResponse: SettleResponse): Task {
-    // Ensure task has a status message for metadata
-    if (!task.status.message) {
-      task.status.message = {
-        messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment completed successfully." }],
-        metadata: {},
-      };
-    }
+    const metadata = ensureStatusMessageMetadata(
+      task,
+      "Payment completed successfully."
+    );
 
-    // Ensure message has metadata
-    if (!task.status.message.metadata) {
-      task.status.message.metadata = {};
-    }
-
-    task.status.message.metadata[x402Utils.STATUS_KEY] =
-      PaymentStatus.PAYMENT_COMPLETED;
+    metadata[x402Utils.STATUS_KEY] = PaymentStatus.PAYMENT_COMPLETED;
 
     // Append to receipts array
-    if (!task.status.message.metadata[x402Utils.RECEIPTS_KEY]) {
-      task.status.message.metadata[x402Utils.RECEIPTS_KEY] = [];
-    }
-    task.status.message.metadata[x402Utils.RECEIPTS_KEY].push(settleResponse);
+    const receipts = (metadata[x402Utils.RECEIPTS_KEY] as SettleResponse[]) || [];
+    receipts.push(settleResponse);
+    metadata[x402Utils.RECEIPTS_KEY] = receipts;
 
     // Clean up intermediate data
-    delete task.status.message.metadata[x402Utils.PAYLOAD_KEY];
-    delete task.status.message.metadata[x402Utils.REQUIRED_KEY];
+    delete metadata[x402Utils.PAYLOAD_KEY];
+    delete metadata[x402Utils.REQUIRED_KEY];
 
     return task;
   }
@@ -251,39 +225,20 @@ export class x402Utils {
     settleResponse: SettleResponse
   ): Task {
     // Per AP2/A2A guidance, keep the task in input-required so the client can retry
-    if (!task.status) {
-      task.status = { state: TaskState.INPUT_REQUIRED };
-    } else {
-      task.status.state = TaskState.INPUT_REQUIRED;
-    }
+    task.status.state = "input-required";
 
-    // Ensure task has a status message for metadata
-    if (!task.status.message) {
-      task.status.message = {
-        messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment failed." }],
-        metadata: {},
-      };
-    }
+    const metadata = ensureStatusMessageMetadata(task, "Payment failed.");
 
-    // Ensure message has metadata
-    if (!task.status.message.metadata) {
-      task.status.message.metadata = {};
-    }
-
-    task.status.message.metadata[x402Utils.STATUS_KEY] =
-      PaymentStatus.PAYMENT_FAILED;
-    task.status.message.metadata[x402Utils.ERROR_KEY] = errorCode;
+    metadata[x402Utils.STATUS_KEY] = PaymentStatus.PAYMENT_FAILED;
+    metadata[x402Utils.ERROR_KEY] = errorCode;
 
     // Append to receipts array
-    if (!task.status.message.metadata[x402Utils.RECEIPTS_KEY]) {
-      task.status.message.metadata[x402Utils.RECEIPTS_KEY] = [];
-    }
-    task.status.message.metadata[x402Utils.RECEIPTS_KEY].push(settleResponse);
+    const receipts = (metadata[x402Utils.RECEIPTS_KEY] as SettleResponse[]) || [];
+    receipts.push(settleResponse);
+    metadata[x402Utils.RECEIPTS_KEY] = receipts;
 
     // Clean up intermediate data
-    delete task.status.message.metadata[x402Utils.PAYLOAD_KEY];
+    delete metadata[x402Utils.PAYLOAD_KEY];
 
     return task;
   }
@@ -293,17 +248,11 @@ export class x402Utils {
       return [];
     }
 
-    const receiptsData = message.metadata[x402Utils.RECEIPTS_KEY] || [];
-    const receipts: SettleResponse[] = [];
-
-    for (const receiptData of receiptsData) {
-      try {
-        receipts.push(receiptData as SettleResponse);
-      } catch {
-        continue;
-      }
+    const receiptsData = message.metadata[x402Utils.RECEIPTS_KEY];
+    if (!Array.isArray(receiptsData)) {
+      return [];
     }
-    return receipts;
+    return receiptsData as SettleResponse[];
   }
 
   getPaymentReceiptsFromTask(task: Task): SettleResponse[] {
@@ -323,24 +272,13 @@ export class x402Utils {
   }
 
   recordPaymentSubmission(task: Task, paymentPayload: PaymentPayload): Task {
-    // Ensure task has a status message for metadata
-    if (!task.status.message) {
-      task.status.message = {
-        messageId: `${task.id}-status`,
-        role: "agent",
-        parts: [{ kind: "text", text: "Payment authorization provided" }],
-        metadata: {},
-      };
-    }
+    const metadata = ensureStatusMessageMetadata(
+      task,
+      "Payment authorization provided"
+    );
 
-    // Ensure message has metadata
-    if (!task.status.message.metadata) {
-      task.status.message.metadata = {};
-    }
-
-    task.status.message.metadata[x402Utils.STATUS_KEY] =
-      PaymentStatus.PAYMENT_SUBMITTED;
-    task.status.message.metadata[x402Utils.PAYLOAD_KEY] = paymentPayload;
+    metadata[x402Utils.STATUS_KEY] = PaymentStatus.PAYMENT_SUBMITTED;
+    metadata[x402Utils.PAYLOAD_KEY] = paymentPayload;
 
     return task;
   }
