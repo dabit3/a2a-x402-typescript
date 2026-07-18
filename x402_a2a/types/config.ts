@@ -17,6 +17,27 @@
 
 export const X402_EXTENSION_URI = "https://github.com/google-a2a/a2a-x402/v0.1";
 
+/**
+ * Controls how strictly the executor treats verifyPayment's result before
+ * running delegate (paid) work versus settling. See dabit3/a2a-x402-typescript#15
+ * and the equivalent fix landed for the Python executor in
+ * google-agentic-commerce/a2a-x402#145.
+ *
+ * - FORMAT_ONLY: verifyPayment only checks the payment payload's signature/
+ *   structure and does NOT guarantee funds will actually settle. In this mode
+ *   the executor settles the payment BEFORE running delegate.execute(), so
+ *   delegate (potentially irreversible, paid) work never runs against a
+ *   payment that could still fail to settle.
+ * - SETTLEMENT_CHECK (default): preserves the executor's existing behavior —
+ *   verify, then run delegate.execute(), then settle. Safe when delegate work
+ *   is cheap/reversible, or when verifyPayment's implementation already
+ *   confirms the payment is on-chain before returning isValid: true.
+ */
+export enum PaymentVerificationMode {
+  FORMAT_ONLY = "format_only",
+  SETTLEMENT_CHECK = "settlement_check",
+}
+
 export interface TokenAmount {
   value: string;
   asset: string;
@@ -30,6 +51,7 @@ export interface x402ExtensionConfig {
   version?: string;
   x402Version?: number;
   required?: boolean;
+  paymentVerificationMode?: PaymentVerificationMode;
 }
 
 export const DEFAULT_X402_EXTENSION_CONFIG: x402ExtensionConfig = {
@@ -37,6 +59,7 @@ export const DEFAULT_X402_EXTENSION_CONFIG: x402ExtensionConfig = {
   version: "0.1",
   x402Version: 1,
   required: true,
+  paymentVerificationMode: PaymentVerificationMode.SETTLEMENT_CHECK,
 };
 
 export interface x402ServerConfig {
