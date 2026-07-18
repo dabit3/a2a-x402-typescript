@@ -30,7 +30,7 @@ import {
   VerifyResponse,
   PaymentPayload,
 } from "../types/state";
-import { x402ExtensionConfig } from "../types/config";
+import { x402ExtensionConfig, PaymentVerificationMode } from "../types/config";
 import {
   x402PaymentRequiredException,
   x402ErrorCode,
@@ -186,6 +186,78 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
       task.metadata = {};
     }
     task.metadata["x402_payment_verified"] = true;
+
+    if (this.config.paymentVerificationMode === PaymentVerificationMode.FORMAT_ONLY) {
+      logger.log(
+        "FORMAT_ONLY verification mode active. Settling payment before executing delegate."
+      );
+
+      // Tracked explicitly rather than re-derived from task.status.state:
+      // recordPaymentFailure() below sets task.status.state to "input-required"
+      // (per AP2/A2A retry guidance), never "failed", so a status-string check
+      // here would never catch a settlement failure.
+      let settlementSucceeded = false;
+
+      try {
+        logger.log("Calling settlePayment...");
+        const settleResponse = await this.settlePayment(
+          paymentPayload,
+          paymentRequirements
+        );
+
+        logger.log(`Settlement response: ${JSON.stringify(settleResponse, null, 2)}`);
+
+        if (settleResponse.success) {
+          logger.log("Settlement successful. Recording payment success.");
+          this.utils.recordPaymentSuccess(task, settleResponse);
+          x402ServerExecutor._paymentRequirementsStore.delete(task.id);
+          settlementSucceeded = true;
+        } else {
+          logger.warn(`Settlement failed: ${settleResponse.errorReason}`);
+          const errorCode =
+            settleResponse.errorReason?.toLowerCase().includes("insufficient")
+              ? x402ErrorCode.INSUFFICIENT_FUNDS
+              : x402ErrorCode.SETTLEMENT_FAILED;
+          this.utils.recordPaymentFailure(task, errorCode, settleResponse);
+          x402ServerExecutor._paymentRequirementsStore.delete(task.id);
+        }
+
+        eventBus.publish(task);
+        logger.log("Settlement processing finished.");
+      } catch (error) {
+        logger.error("Exception during settlement:", error);
+        this._failPayment(
+          task,
+          x402ErrorCode.SETTLEMENT_FAILED,
+          `Settlement failed: ${error}`,
+          eventBus
+        );
+        return;
+      }
+
+      if (!settlementSucceeded) {
+        logger.warn(
+          "Settlement did not succeed; delegate (paid) work will not run."
+        );
+        return;
+      }
+
+      try {
+        logger.log(
+          "Payment settled successfully. Executing delegate agent..."
+        );
+        await this._delegate.execute(context, eventBus);
+        logger.log("Delegate agent execution finished.");
+      } catch (error) {
+        logger.error(
+          "Exception during delegate execution after payment was already settled successfully. " +
+            "This is a post-payment service-delivery failure, not a payment failure:",
+          error
+        );
+      }
+
+      return;
+    }
 
     try {
       logger.log("Executing delegate agent...");
