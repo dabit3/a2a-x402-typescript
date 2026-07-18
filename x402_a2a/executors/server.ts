@@ -192,6 +192,12 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         "FORMAT_ONLY verification mode active. Settling payment before executing delegate."
       );
 
+      // Tracked explicitly rather than re-derived from task.status.state:
+      // recordPaymentFailure() below sets task.status.state to "input-required"
+      // (per AP2/A2A retry guidance), never "failed", so a status-string check
+      // here would never catch a settlement failure.
+      let settlementSucceeded = false;
+
       try {
         logger.log("Calling settlePayment...");
         const settleResponse = await this.settlePayment(
@@ -205,6 +211,7 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
           logger.log("Settlement successful. Recording payment success.");
           this.utils.recordPaymentSuccess(task, settleResponse);
           x402ServerExecutor._paymentRequirementsStore.delete(task.id);
+          settlementSucceeded = true;
         } else {
           logger.warn(`Settlement failed: ${settleResponse.errorReason}`);
           const errorCode =
@@ -228,7 +235,10 @@ export abstract class x402ServerExecutor extends x402BaseExecutor {
         return;
       }
 
-      if (task.status.state === "failed") {
+      if (!settlementSucceeded) {
+        logger.warn(
+          "Settlement did not succeed; delegate (paid) work will not run."
+        );
         return;
       }
 
